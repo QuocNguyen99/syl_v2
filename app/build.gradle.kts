@@ -58,6 +58,8 @@ kapt {
 
 dependencies {
     val room_version = "2.5.2"
+    val nav_version = "2.7.0"
+    val lifecycle_version = "2.5.1"
 
     implementation(libs.core.ktx)
     implementation(libs.lifecycle.runtime.ktx)
@@ -88,4 +90,22 @@ dependencies {
 
     //Mapbox
     implementation("com.mapbox.maps:android:10.15.0")
+
+    //Navigation
+    implementation("androidx.navigation:navigation-compose:$nav_version")
+
+    //Coroutine
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
+
+    //Livedata
+    //ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
+    // ViewModel utilities for Compose
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version")
+    // LiveData
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version")
+
+    //System UI Controller
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
+
 }
