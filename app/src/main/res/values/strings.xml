@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">syl_v2</string>
+    <string name="profile">Profile</string>
+    <string name="home">Home</string>
+    <string name="achievement">Achievement</string>
+    <string name="notification">Notification</string>
 </resources>

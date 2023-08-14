@@ -2,6 +2,8 @@ package com.hqnguyen.syl_v2.ui.page.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,7 +24,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
@@ -31,9 +32,13 @@ fun HomeScreen(modifier: Modifier = Modifier) {
     systemUiController.setSystemBarsColor(
         color = MaterialTheme.colorScheme.primary
     )
-    Scaffold {
-        Surface(modifier = Modifier.padding(it)) {
-            AppBarHome(modifier)
+    Surface() {
+//            AppBarHome(modifier)
+
+        Column(
+            Modifier
+                .fillMaxSize()) {
+
         }
     }
 }
@@ -44,7 +49,6 @@ fun AppBarHome(modifier: Modifier = Modifier) {
         modifier = modifier
             .width(20.dp)
             .height(20.dp)
-            .background(MaterialTheme.colorScheme.primary)
             .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
     ) {
 
