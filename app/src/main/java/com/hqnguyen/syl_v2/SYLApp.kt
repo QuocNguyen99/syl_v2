@@ -1,32 +1,28 @@
 package com.hqnguyen.syl_v2
 
-import android.graphics.drawable.Icon
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.FormatListBulleted
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Star
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,15 +31,21 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.hqnguyen.syl_v2.ui.page.achievement.AchievementScreen
 import com.hqnguyen.syl_v2.ui.page.home.HomeScreen
+import com.hqnguyen.syl_v2.ui.page.noti.NotificationScreen
+import com.hqnguyen.syl_v2.ui.page.profile.ProfileScreen
 
 sealed class BottomNavigation(
     val route: String,
     @StringRes val resourceId: Int,
     val icon: ImageVector
 ) {
-    object Home : BottomNavigation("home", R.string.home, Icons.Outlined.Home)
-    object Achievement : BottomNavigation("achievement", R.string.achievement, Icons.Outlined.Star)
+    object Home : BottomNavigation("home", R.string.home, Icons.Outlined.FormatListBulleted)
+    object Achievement :
+        BottomNavigation("achievement", R.string.achievement, Icons.Outlined.StarOutline)
+
     object Notification :
         BottomNavigation("notification", R.string.notification, Icons.Outlined.Notifications)
 
@@ -52,6 +54,11 @@ sealed class BottomNavigation(
 
 @Composable
 fun SYLApp(modifier: Modifier = Modifier) {
+
+    val systemUiController = rememberSystemUiController()
+    systemUiController.setStatusBarColor(
+        color = MaterialTheme.colorScheme.primary
+    )
 
     val navController = rememberNavController()
 
@@ -73,15 +80,16 @@ fun SYLApp(modifier: Modifier = Modifier) {
             }
 
             composable(route = "achievement") {
+                AchievementScreen()
 
             }
 
             composable(route = "notification") {
-
+                NotificationScreen()
             }
 
             composable(route = "profile") {
-
+                ProfileScreen()
             }
         }
     }
@@ -98,28 +106,43 @@ fun BottomNavigationApp(
     bottomNavigationItems: List<BottomNavigation>,
     navController: NavHostController
 ) {
-    BottomNavigation(
-        backgroundColor = Color.White,
+    NavigationBar(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp))
-            .background(Color.White)
-            .shadow(4.dp, shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-        elevation = 10.dp
+            .height(75.dp)
+            .graphicsLayer {
+                shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)
+                clip = true
+            }
+            .background(Color.White),
+        tonalElevation = 12.dp,
+        containerColor = Color.White,
+        contentColor = MaterialTheme.colorScheme.primary
     ) {
         bottomNavigationItems.forEach {
             val currentRoute = currentRoute(navController)
-            BottomNavigationItem(
-                label = { Text(text = stringResource(id = it.resourceId), fontSize = 10.sp) },
-                selected = currentRoute == it.route,
+            val selected = currentRoute == it.route
+            NavigationBarItem(
+                label = {
+                    Text(
+                        text = stringResource(id = it.resourceId),
+                        fontSize = 10.sp,
+                        color = if (selected) MaterialTheme.colorScheme.primary else Color.LightGray
+                    )
+                },
+                selected = selected,
                 onClick = {
-                    if (currentRoute != it.route) {
+                    if (!selected) {
                         navController.navigate(it.route)
                     }
                 },
-                icon = { Icon(imageVector = it.icon, contentDescription = "") },
-                selectedContentColor = MaterialTheme.colors.primary,
-                unselectedContentColor = Color.Gray
+                icon = {
+                    Icon(
+                        imageVector = it.icon,
+                        contentDescription = "",
+                        tint = if (selected) MaterialTheme.colorScheme.primary else Color.LightGray
+                    )
+                },
             )
         }
     }

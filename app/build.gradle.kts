@@ -105,4 +105,6 @@ dependencies {
     //System UI Controller
     implementation(libs.accompanist.systemuicontroller)
 
+    implementation("androidx.compose.material:material-icons-extended:1.5.0")
+
 }
