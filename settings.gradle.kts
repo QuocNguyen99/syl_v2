@@ -17,8 +17,8 @@ dependencyResolutionManagement {
             }
             credentials {
                 username = "mapbox"
-                password = extra["MAPBOX_DOWNLOADS_TOKEN"] as String
-//                password = "sk.eyJ1Ijoibmd1eWVuMTk5OSIsImEiOiJjbGR1aW81cWMwNjZwM29wbm5xcnZuaWk4In0.QrCA3zeZNbcoVwJsC2MdjA"
+//                password = extra["MAPBOX_DOWNLOADS_TOKEN"] as String
+                password = "sk.eyJ1Ijoibmd1eWVuMTk5OSIsImEiOiJjbGR1aW81cWMwNjZwM29wbm5xcnZuaWk4In0.QrCA3zeZNbcoVwJsC2MdjA"
             }
         }
     }

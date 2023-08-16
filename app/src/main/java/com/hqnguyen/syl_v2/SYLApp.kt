@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FormatListBulleted
 import androidx.compose.material.icons.outlined.Notifications
@@ -15,13 +14,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -34,6 +33,7 @@ import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.hqnguyen.syl_v2.ui.page.achievement.AchievementScreen
 import com.hqnguyen.syl_v2.ui.page.home.HomeScreen
+import com.hqnguyen.syl_v2.ui.page.map_record.MapRecordScreen
 import com.hqnguyen.syl_v2.ui.page.noti.NotificationScreen
 import com.hqnguyen.syl_v2.ui.page.profile.ProfileScreen
 
@@ -69,27 +69,38 @@ fun SYLApp(modifier: Modifier = Modifier) {
         BottomNavigation.Profile,
     )
 
-    Scaffold(bottomBar = { BottomNavigationApp(bottomNavigationItems, navController) }) {
+    val bottomBarRoutes = bottomNavigationItems.map { it.route }
+    val shouldShowBottomBar: Boolean = navController
+        .currentBackStackEntryAsState().value?.destination?.route in bottomBarRoutes
+
+    systemUiController.isNavigationBarVisible = false
+    Scaffold(bottomBar = {
+        if (shouldShowBottomBar)
+            BottomNavigationApp(bottomNavigationItems, navController)
+    }) {
         NavHost(
             navController = navController,
             startDestination = "home",
             modifier = Modifier.padding(it)
         ) {
             composable(route = "home") {
-                HomeScreen()
+                HomeScreen(navController::navigate)
             }
 
             composable(route = "achievement") {
-                AchievementScreen()
-
+                AchievementScreen(navController::navigate)
             }
 
             composable(route = "notification") {
-                NotificationScreen()
+                NotificationScreen(navController::navigate)
             }
 
             composable(route = "profile") {
-                ProfileScreen()
+                ProfileScreen(navController::navigate)
+            }
+
+            composable(route = "map_record") {
+                MapRecordScreen(navController::navigate)
             }
         }
     }
@@ -110,14 +121,9 @@ fun BottomNavigationApp(
         modifier = Modifier
             .fillMaxWidth()
             .height(75.dp)
-            .graphicsLayer {
-                shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp)
-                clip = true
-            }
+            .padding(0.dp)
             .background(Color.White),
-        tonalElevation = 12.dp,
         containerColor = Color.White,
-        contentColor = MaterialTheme.colorScheme.primary
     ) {
         bottomNavigationItems.forEach {
             val currentRoute = currentRoute(navController)
@@ -127,7 +133,6 @@ fun BottomNavigationApp(
                     Text(
                         text = stringResource(id = it.resourceId),
                         fontSize = 10.sp,
-                        color = if (selected) MaterialTheme.colorScheme.primary else Color.LightGray
                     )
                 },
                 selected = selected,
@@ -140,9 +145,15 @@ fun BottomNavigationApp(
                     Icon(
                         imageVector = it.icon,
                         contentDescription = "",
-                        tint = if (selected) MaterialTheme.colorScheme.primary else Color.LightGray
                     )
                 },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = Color.White,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    unselectedIconColor = Color.LightGray,
+                    unselectedTextColor = Color.LightGray,
+                    indicatorColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
     }
