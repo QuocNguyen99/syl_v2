@@ -4,4 +4,5 @@
     <string name="home">Home</string>
     <string name="achievement">Achievement</string>
     <string name="notification">Notification</string>
+    <string name="mapbox_access_token">pk.eyJ1Ijoia2Fpbm92YTE5OTkiLCJhIjoiY2tzaXBjMG42MjZhdTJ0cm9nNTRjeHVpMiJ9.G756yw05v_Sc0d9OkoiI1g</string>
 </resources>

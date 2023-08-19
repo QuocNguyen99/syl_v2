@@ -1,7 +1,8 @@
 [versions]
 accompanist-systemuicontroller = "0.27.0"
-agp = "8.2.0-alpha06"
+agp = "8.1.0"
 coil-compose = "2.4.0"
+constraintlayout-compose = "1.0.1"
 hilt-android = "2.44"
 hilt-android-compiler = "2.44"
 android = "10.15.0"
@@ -19,16 +20,19 @@ lifecycle-viewmodel-ktx = "2.6.1"
 lifecycle-viewmodel-compose = "2.6.1"
 material = "1.5.0"
 navigation-compose = "2.7.0"
+play-services-location = "21.0.1"
 room-runtime = "2.5.2"
 room-compiler = "2.5.2"
 
 [libraries]
 android = { module = "com.mapbox.maps:android", version.ref = "android" }
+androidx-constraintlayout-compose = { module = "androidx.constraintlayout:constraintlayout-compose", version.ref = "constraintlayout-compose" }
 androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycle-livedata-ktx" }
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanist-systemuicontroller" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle-viewmodel-ktx" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle-viewmodel-compose" }
 androidx-material = { module = "androidx.compose.material:material", version.ref = "material" }
+androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "material" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil-compose" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room-runtime" }
@@ -43,6 +47,7 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
 activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity-compose" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
 ui = { group = "androidx.compose.ui", name = "ui" }
 ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }

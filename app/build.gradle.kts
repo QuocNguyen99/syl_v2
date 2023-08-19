@@ -73,27 +73,21 @@ dependencies {
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
-
     //Coil
     implementation(libs.coil.compose)
-
     //Room
     implementation(libs.androidx.room.runtime)
     annotationProcessor(libs.androidx.room.compiler)
-
     //Hilt
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
-
     //Mapbox
     implementation(libs.android)
-
     //Navigation
     implementation(libs.androidx.navigation.compose)
 
     //Coroutine
     implementation(libs.kotlinx.coroutines.android)
-
     //Livedata
     //ViewModel
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
@@ -101,11 +95,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     // LiveData
     implementation(libs.androidx.lifecycle.livedata.ktx)
-
     //System UI Controller
     implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.constraintlayout.compose)
+    implementation(libs.play.services.location)
 
-    implementation("androidx.compose.material:material-icons-extended:1.5.0")
-
-    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
 }
