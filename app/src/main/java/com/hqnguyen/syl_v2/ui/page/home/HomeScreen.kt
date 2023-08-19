@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.navigation.NavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.hqnguyen.syl_v2.R
 import com.hqnguyen.syl_v2.data.Record
 import com.hqnguyen.syl_v2.ui.theme.SYLTheme
@@ -52,6 +53,10 @@ import com.hqnguyen.syl_v2.ui.theme.colorBackgroundColor
 
 @Composable
 fun HomeScreen(navigation: ((uri: String) -> Unit)? = null) {
+    val systemUiController = rememberSystemUiController()
+    systemUiController.setStatusBarColor(
+        color = MaterialTheme.colorScheme.primary
+    )
     Column(
         Modifier
             .fillMaxSize()

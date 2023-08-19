@@ -56,9 +56,6 @@ sealed class BottomNavigation(
 fun SYLApp(modifier: Modifier = Modifier) {
 
     val systemUiController = rememberSystemUiController()
-    systemUiController.setStatusBarColor(
-        color = MaterialTheme.colorScheme.primary
-    )
 
     val navController = rememberNavController()
 
@@ -100,7 +97,7 @@ fun SYLApp(modifier: Modifier = Modifier) {
             }
 
             composable(route = "map_record") {
-                MapRecordScreen(navController::navigate)
+                MapRecordScreen(navController )
             }
         }
     }
