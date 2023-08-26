@@ -1,6 +1,8 @@
 package com.hqnguyen.syl_v2
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -78,26 +80,59 @@ fun SYLApp(modifier: Modifier = Modifier) {
         NavHost(
             navController = navController,
             startDestination = "home",
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popExitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
             modifier = Modifier.padding(it)
         ) {
-            composable(route = "home") {
+            composable(
+                route = "home",
+                enterTransition = null,
+                exitTransition = null,
+                popExitTransition = null,
+                popEnterTransition = null
+            ) {
                 HomeScreen(navController::navigate)
             }
 
-            composable(route = "achievement") {
+            composable(
+                route = "achievement",
+                enterTransition = null,
+                exitTransition = null,
+                popExitTransition = null,
+                popEnterTransition = null
+            ) {
                 AchievementScreen(navController::navigate)
             }
 
-            composable(route = "notification") {
+            composable(
+                route = "notification",
+                enterTransition = null,
+                exitTransition = null,
+                popExitTransition = null,
+                popEnterTransition = null
+            ) {
                 NotificationScreen(navController::navigate)
             }
 
-            composable(route = "profile") {
+            composable(
+                route = "profile",
+                enterTransition = null,
+                exitTransition = null,
+                popExitTransition = null,
+                popEnterTransition = null
+            ) {
                 ProfileScreen(navController::navigate)
             }
 
-            composable(route = "map_record") {
-                MapRecordScreen(navController )
+            composable(
+                route = "map_record", enterTransition = null,
+                exitTransition = null,
+                popExitTransition = null,
+                popEnterTransition = null
+            ) {
+                MapRecordScreen(navController)
             }
         }
     }

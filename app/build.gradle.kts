@@ -101,4 +101,6 @@ dependencies {
     implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.play.services.location)
 
+    //Will remove when compose support request permission
+    implementation("com.google.accompanist:accompanist-permissions:0.25.0")
 }
