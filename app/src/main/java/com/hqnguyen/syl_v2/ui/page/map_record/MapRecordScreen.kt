@@ -146,27 +146,29 @@ fun MapRecordScreen(navigation: NavHostController? = null) {
 
                 val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
                     if (currentPosition.latitude() != it.latitude() || currentPosition.longitude() != it.longitude()) {
-                        if (currentTime != 0L) {
-                            speedMeterSate = calculatorSpeed(
-                                currentPosition,
-                                it,
-                                currentTime,
-                                System.currentTimeMillis()
-                            )
-                            distanceState += calculateDistance(currentPosition, it)
-                        }
-                        currentTime = System.currentTimeMillis()
 
-                        currentPosition = it
-                        Log.d(
-                            TAG,
-                            "onIndicatorPositionChangedListener: ${it.latitude()} - ${it.longitude()}"
-                        )
+
                         mapView.getMapboxMap()
                             .setCamera(CameraOptions.Builder().center(it).zoom(14.0).build())
                         mapView.gestures.focalPoint = mapView.getMapboxMap().pixelForCoordinate(it)
 
                         if (saveLocal) {
+                            if (currentTime != 0L) {
+                                speedMeterSate = calculatorSpeed(
+                                    currentPosition,
+                                    it,
+                                    currentTime,
+                                    System.currentTimeMillis()
+                                )
+
+                                distanceState += calculateDistance(currentPosition, it)
+                                Log.d("calculateDistance", "calculateDistance: $distanceState")
+                            }
+                            currentTime = System.currentTimeMillis()
+
+                            currentPosition = it
+                            Log.d(TAG, "onIndicatorPositionChangedListener: ${it.latitude()} - ${it.longitude()}")
+
                             Log.d(TAG, "saveLocal: ${it.latitude()} - ${it.longitude()}")
                             saveLocal = false
                             timer.start()
