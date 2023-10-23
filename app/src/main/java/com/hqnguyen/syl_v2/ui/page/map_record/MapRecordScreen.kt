@@ -1,11 +1,18 @@
 package com.hqnguyen.syl_v2.ui.page.map_record
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.app.LocaleManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.CountDownTimer
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import androidx.annotation.DrawableRes
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -42,6 +49,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -62,6 +70,13 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.Granularity
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.hqnguyen.syl_v2.R
 import com.hqnguyen.syl_v2.ui.theme.SYLTheme
 import com.hqnguyen.syl_v2.utils.calculateDistance
@@ -77,11 +92,12 @@ import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListen
 import com.mapbox.maps.plugin.locationcomponent.location
 import java.text.DecimalFormat
 
+const val TAG = "MapRecordScreen"
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MapRecordScreen(navigation: NavHostController? = null) {
-    val TAG = "MapRecordScreen"
 
     var cardVisible by remember { mutableStateOf(true) }
     var isRecord by remember { mutableStateOf(false) }
@@ -97,16 +113,27 @@ fun MapRecordScreen(navigation: NavHostController? = null) {
     val context = LocalContext.current
     val locationPermissionsState = rememberMultiplePermissionsState(
         listOf(
-            android.Manifest.permission.ACCESS_COARSE_LOCATION,
-            android.Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION,
         )
     )
 
-    LaunchedEffect(key1 = true) {
+    LaunchedEffect(key1 = true, block = {
         locationPermissionsState.launchMultiplePermissionRequest()
-    }
+    })
+
+    val locationManager = LocationManager(context,2000,1f)
+
 
     if (locationPermissionsState.allPermissionsGranted) {
+        DisposableEffect(key1  = locationManager.locationClient){
+            locationManager.startLocationTracking()
+
+            onDispose {
+                locationManager.stopLocationTracking()
+            }
+        }
+
         Box(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background)
@@ -121,18 +148,10 @@ fun MapRecordScreen(navigation: NavHostController? = null) {
                 MapView(context).apply {
                     getMapboxMap().loadStyleUri(Style.MAPBOX_STREETS) {}
                 }
-            }, update = { mapView ->
+            }) { mapView ->
                 mapView.location.updateSettings {
                     enabled = true
                     pulsingEnabled = true
-                }
-
-                val timer = object : CountDownTimer(2000, 1000) {
-                    override fun onTick(millisUntilFinished: Long) {}
-
-                    override fun onFinish() {
-                        saveLocal = true
-                    }
                 }
 
                 val onIndicatorBearingChangedListener = OnIndicatorBearingChangedListener {
@@ -145,34 +164,10 @@ fun MapRecordScreen(navigation: NavHostController? = null) {
                 }
 
                 val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
-                    if (currentPosition.latitude() != it.latitude() || currentPosition.longitude() != it.longitude()) {
-
-
+                    if ((currentPosition.latitude() != it.latitude()) || (currentPosition.longitude() != it.longitude())) {
                         mapView.getMapboxMap()
                             .setCamera(CameraOptions.Builder().center(it).zoom(14.0).build())
                         mapView.gestures.focalPoint = mapView.getMapboxMap().pixelForCoordinate(it)
-
-                        if (saveLocal) {
-                            if (currentTime != 0L) {
-                                speedMeterSate = calculatorSpeed(
-                                    currentPosition,
-                                    it,
-                                    currentTime,
-                                    System.currentTimeMillis()
-                                )
-
-                                distanceState += calculateDistance(currentPosition, it)
-                                Log.d("calculateDistance", "calculateDistance: $distanceState")
-                            }
-                            currentTime = System.currentTimeMillis()
-
-                            currentPosition = it
-                            Log.d(TAG, "onIndicatorPositionChangedListener: ${it.latitude()} - ${it.longitude()}")
-
-                            Log.d(TAG, "saveLocal: ${it.latitude()} - ${it.longitude()}")
-                            saveLocal = false
-                            timer.start()
-                        }
                     }
                 }
 
@@ -182,7 +177,7 @@ fun MapRecordScreen(navigation: NavHostController? = null) {
                 mapView.location.addOnIndicatorBearingChangedListener(
                     onIndicatorBearingChangedListener
                 )
-            })
+            }
 
             IconBack {
                 navigation?.popBackStack()
@@ -387,6 +382,8 @@ fun ItemInfoRunning(@DrawableRes iconId: Int, number: Double, unit: String) {
     }
 }
 
+
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Preview
 @Composable
 fun PreviewMapRecordScreen() {
