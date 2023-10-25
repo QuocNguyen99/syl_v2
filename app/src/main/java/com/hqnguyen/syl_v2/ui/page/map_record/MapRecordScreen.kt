@@ -1,14 +1,9 @@
 package com.hqnguyen.syl_v2.ui.page.map_record
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.app.LocaleManager
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.os.CountDownTimer
-import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import androidx.annotation.DrawableRes
@@ -49,10 +44,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -67,20 +61,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.Granularity
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
 import com.hqnguyen.syl_v2.R
+import com.hqnguyen.syl_v2.data.InfoTracking
 import com.hqnguyen.syl_v2.ui.theme.SYLTheme
-import com.hqnguyen.syl_v2.utils.calculateDistance
-import com.hqnguyen.syl_v2.utils.calculatorSpeed
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
@@ -97,18 +84,18 @@ const val TAG = "MapRecordScreen"
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun MapRecordScreen(navigation: NavHostController? = null) {
+fun MapRecordScreen(
+    viewModel: MapRecordViewModel = hiltViewModel(),
+    navigation: NavHostController? = null
+) {
+
+    val mapUiState by viewModel.state.collectAsState()
 
     var cardVisible by remember { mutableStateOf(true) }
     var isRecord by remember { mutableStateOf(false) }
-    var speedMeterSate by remember { mutableDoubleStateOf(0.0) }
-    var kcalState by remember { mutableDoubleStateOf(0.0) }
-    var distanceState by remember { mutableDoubleStateOf(0.0) }
 
     var currentBearing = 0.0
-    var currentPosition: Point = Point.fromLngLat(0.0, 0.0)
-    var currentTime: Long = 0
-    var saveLocal = true
+    val currentPosition: Point = Point.fromLngLat(0.0, 0.0)
 
     val context = LocalContext.current
     val locationPermissionsState = rememberMultiplePermissionsState(
@@ -122,17 +109,22 @@ fun MapRecordScreen(navigation: NavHostController? = null) {
         locationPermissionsState.launchMultiplePermissionRequest()
     })
 
-    val locationManager = LocationManager(context,2000,1f)
+    val locationManager = LocationManager(context, 3000, 1f)
 
 
     if (locationPermissionsState.allPermissionsGranted) {
-        DisposableEffect(key1  = locationManager.locationClient){
-            locationManager.startLocationTracking()
 
-            onDispose {
-                locationManager.stopLocationTracking()
+        LaunchedEffect(key1 = locationManager.currentInfoTracking, block = {
+            locationManager.currentInfoTracking.collect {
+                Log.d(TAG, "currentInfoTracking: $it")
+                val newInfoTracking = InfoTracking(
+                    speed = it.speed,
+                    kCal = it.kCal,
+                    distance = it.distance + mapUiState.infoTracking.distance
+                )
+                viewModel.handleEvent(MapEvent.UpdateInfoTracking(newInfoTracking))
             }
-        }
+        })
 
         Box(
             modifier = Modifier
@@ -194,10 +186,17 @@ fun MapRecordScreen(navigation: NavHostController? = null) {
                 modifier = Modifier.align(Alignment.BottomCenter)) {
                 CardInfo(
                     isRecord = isRecord,
-                    speedMeter = speedMeterSate,
-                    distance = distanceState,
-                    onHide = { cardVisible = false },
-                    onChangeRecord = { isRecord = !isRecord })
+                    speedMeter = mapUiState.infoTracking.speed,
+                    distance = mapUiState.infoTracking.distance,
+                    onHide = { cardVisible = false }
+                ) {
+                    isRecord = !isRecord
+                    if (isRecord) {
+                        locationManager.startLocationTracking()
+                    } else {
+                        locationManager.stopLocationTracking()
+                    }
+                }
             }
 
             AnimatedVisibility(
@@ -262,8 +261,8 @@ fun IconBack(onBack: () -> Unit) {
 @Composable
 fun CardInfo(
     modifier: Modifier = Modifier,
-    speedMeter: Double = 0.0,
-    distance: Double = 0.0,
+    speedMeter: Float = 0f,
+    distance: Float = 0f,
     isRecord: Boolean = false,
     onHide: () -> Unit = {},
     onChangeRecord: () -> Unit = {}
@@ -322,8 +321,8 @@ fun CardInfo(
 
 @Composable
 fun InfoRunning(
-    speedMeter: Double = 0.0,
-    distance: Double = 0.0,
+    speedMeter: Float = 0f,
+    distance: Float = 0f,
 ) {
     Surface(
         shape = RoundedCornerShape(16.dp),
@@ -348,7 +347,7 @@ fun InfoRunning(
                     .background(Color.LightGray)
             )
 
-            ItemInfoRunning(R.drawable.ic_kcal, 20.0, "km")
+            ItemInfoRunning(R.drawable.ic_kcal, 20f, "km")
             Spacer(modifier = Modifier.width(8.dp))
             Box(
                 modifier = Modifier
@@ -368,7 +367,7 @@ fun InfoRunning(
 }
 
 @Composable
-fun ItemInfoRunning(@DrawableRes iconId: Int, number: Double, unit: String) {
+fun ItemInfoRunning(@DrawableRes iconId: Int, number: Float, unit: String) {
     val decimalFormat = DecimalFormat("0.00")
     val painted = painterResource(id = iconId)
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -396,7 +395,7 @@ fun PreviewMapRecordScreen() {
 @Composable
 fun PreviewIconBack() {
     SYLTheme {
-        IconBack({})
+        IconBack {}
     }
 }
 
@@ -420,6 +419,6 @@ fun PreviewInfoRunning() {
 @Composable
 fun PreviewItemInfoRunning() {
     SYLTheme {
-        ItemInfoRunning(R.drawable.ic_kcal, 20.0, "km")
+        ItemInfoRunning(R.drawable.ic_kcal, 20f, "km")
     }
 }

@@ -2,11 +2,14 @@
 accompanist-permissions = "v0.32.0"
 accompanist-systemuicontroller = "0.27.0"
 agp = "8.1.1"
+androidx-navigation-compose = "2.7.4"
 coil-compose = "2.4.0"
 constraintlayout-compose = "1.0.1"
+google-accompanist-permissions = "0.25.0"
 hilt-android = "2.44"
 hilt-android-compiler = "2.44"
 android = "10.15.0"
+hilt-navigation-fragment = "1.0.0"
 kotlin = "1.9.0"
 core-ktx = "1.10.1"
 junit = "4.13.2"
@@ -24,9 +27,11 @@ navigation-compose = "2.7.0"
 play-services-location = "21.0.1"
 room-runtime = "2.5.2"
 room-compiler = "2.5.2"
+hilt-navigation-compose = "1.0.0"
 
 [libraries]
-accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist-permissions" }
+androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt-navigation-compose" }
+accompanist-permissions-v0250 = { module = "com.google.accompanist:accompanist-permissions", version.ref = "google-accompanist-permissions" }
 android = { module = "com.mapbox.maps:android", version.ref = "android" }
 androidx-constraintlayout-compose = { module = "androidx.constraintlayout:constraintlayout-compose", version.ref = "constraintlayout-compose" }
 androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycle-livedata-ktx" }

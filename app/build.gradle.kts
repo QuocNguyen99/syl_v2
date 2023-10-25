@@ -100,7 +100,7 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.play.services.location)
-
+    implementation(libs.androidx.hilt.navigation.compose)
     //Will remove when compose support request permission
-    implementation("com.google.accompanist:accompanist-permissions:0.25.0")
+    implementation(libs.accompanist.permissions.v0250)
 }

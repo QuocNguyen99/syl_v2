@@ -1,5 +1,7 @@
 package com.hqnguyen.syl_v2
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -54,6 +56,7 @@ sealed class BottomNavigation(
     object Profile : BottomNavigation("profile", R.string.profile, Icons.Outlined.Person)
 }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun SYLApp(modifier: Modifier = Modifier) {
 
@@ -132,7 +135,7 @@ fun SYLApp(modifier: Modifier = Modifier) {
                 popExitTransition = null,
                 popEnterTransition = null
             ) {
-                MapRecordScreen(navController)
+                MapRecordScreen(navigation = navController)
             }
         }
     }
