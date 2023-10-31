@@ -2,7 +2,6 @@ package com.hqnguyen.syl_v2.ui.page.map_record
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.location.Location
 import android.os.Looper
 import android.util.Log
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -81,7 +80,7 @@ class LocationManager(
 
                         val timeDifference = System.currentTimeMillis() - preTime // Thời gian tính bằng mili giây
                         val distance = (speed * (timeDifference / 1000)) / 3600 // Kilometer
-                        Log.d(TAG, "onLocationResult: $distance")
+                        Log.d(TAG, "onLocationResult: ${distance.toBigDecimal()}")
                         preTime = System.currentTimeMillis()
                         val kCal = 1f
 
@@ -90,7 +89,7 @@ class LocationManager(
                                 InfoTracking(
                                     speed = speed.toFloat(),
                                     kCal = kCal,
-                                    distance = distance.toFloat()
+                                    distance = distance.toBigDecimal()
                                 )
                             )
                         }

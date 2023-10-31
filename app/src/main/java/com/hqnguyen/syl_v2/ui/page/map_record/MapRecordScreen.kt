@@ -77,6 +77,7 @@ import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
+import java.math.BigDecimal
 import java.text.DecimalFormat
 
 const val TAG = "MapRecordScreen"
@@ -262,7 +263,7 @@ fun IconBack(onBack: () -> Unit) {
 fun CardInfo(
     modifier: Modifier = Modifier,
     speedMeter: Float = 0f,
-    distance: Float = 0f,
+    distance: BigDecimal = BigDecimal(0),
     isRecord: Boolean = false,
     onHide: () -> Unit = {},
     onChangeRecord: () -> Unit = {}
@@ -322,7 +323,7 @@ fun CardInfo(
 @Composable
 fun InfoRunning(
     speedMeter: Float = 0f,
-    distance: Float = 0f,
+    distance: BigDecimal = BigDecimal(0),
 ) {
     Surface(
         shape = RoundedCornerShape(16.dp),
@@ -335,9 +336,9 @@ fun InfoRunning(
             verticalAlignment = Alignment.CenterVertically
         ) {
             ItemInfoRunning(
-                R.drawable.ic_speed_meter,
-                speedMeter,
-                "km/h"
+                iconId = R.drawable.ic_speed_meter,
+                number = speedMeter,
+                unit = "km/h"
             )
             Spacer(modifier = Modifier.width(8.dp))
             Box(
@@ -347,7 +348,7 @@ fun InfoRunning(
                     .background(Color.LightGray)
             )
 
-            ItemInfoRunning(R.drawable.ic_kcal, 20f, "km")
+            ItemInfoRunning(iconId = R.drawable.ic_kcal, number = 20f, unit = "km")
             Spacer(modifier = Modifier.width(8.dp))
             Box(
                 modifier = Modifier
@@ -357,9 +358,9 @@ fun InfoRunning(
             )
 
             ItemInfoRunning(
-                R.drawable.ic_distance,
-                distance,
-                "km"
+                iconId = R.drawable.ic_distance,
+                numberBigDecimal = distance,
+                unit = "km"
             )
             Spacer(modifier = Modifier.width(8.dp))
         }
@@ -367,14 +368,22 @@ fun InfoRunning(
 }
 
 @Composable
-fun ItemInfoRunning(@DrawableRes iconId: Int, number: Float, unit: String) {
+fun ItemInfoRunning(
+    @DrawableRes iconId: Int,
+    number: Float = 0f,
+    numberBigDecimal: BigDecimal = BigDecimal(0),
+    unit: String
+) {
     val decimalFormat = DecimalFormat("0.00")
     val painted = painterResource(id = iconId)
     Row(verticalAlignment = Alignment.CenterVertically) {
         Image(painter = painted, contentDescription = "", modifier = Modifier.size(32.dp))
         Spacer(modifier = Modifier.width(8.dp))
         Column {
-            Text(text = decimalFormat.format(number), color = Color.Gray)
+            Text(
+                text = if (number != 0f) decimalFormat.format(number) else numberBigDecimal.toString(),
+                color = Color.Gray
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = unit, color = Color.Black)
         }
@@ -419,6 +428,6 @@ fun PreviewInfoRunning() {
 @Composable
 fun PreviewItemInfoRunning() {
     SYLTheme {
-        ItemInfoRunning(R.drawable.ic_kcal, 20f, "km")
+        ItemInfoRunning(iconId = R.drawable.ic_kcal, number = 20f, unit = "km")
     }
 }
