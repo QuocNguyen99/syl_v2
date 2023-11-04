@@ -96,7 +96,7 @@ fun SYLApp(modifier: Modifier = Modifier) {
                 popExitTransition = null,
                 popEnterTransition = null
             ) {
-                HomeScreen(navController::navigate)
+                HomeScreen(navigation = navController::navigate)
             }
 
             composable(

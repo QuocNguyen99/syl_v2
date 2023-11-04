@@ -194,6 +194,7 @@ fun MapRecordScreen(
                     isRecord = !isRecord
                     if (isRecord) {
                         locationManager.startLocationTracking()
+                        viewModel.handleEvent(MapEvent.Start)
                     } else {
                         locationManager.stopLocationTracking()
                     }

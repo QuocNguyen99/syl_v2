@@ -4,5 +4,6 @@ import com.hqnguyen.syl_v2.data.InfoTracking
 
 data class MapState(
     var isShowLoading: Boolean = false,
+    var timeStart: Long = System.currentTimeMillis(),
     var infoTracking: InfoTracking = InfoTracking()
 )

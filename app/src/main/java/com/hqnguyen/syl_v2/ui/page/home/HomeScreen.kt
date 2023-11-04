@@ -44,7 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.navigation.NavController
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.hqnguyen.syl_v2.R
 import com.hqnguyen.syl_v2.data.Record
@@ -52,7 +52,10 @@ import com.hqnguyen.syl_v2.ui.theme.SYLTheme
 import com.hqnguyen.syl_v2.ui.theme.colorBackgroundColor
 
 @Composable
-fun HomeScreen(navigation: ((uri: String) -> Unit)? = null) {
+fun HomeScreen(
+    viewModel: HomeViewModel = hiltViewModel(),
+    navigation: ((uri: String) -> Unit)? = null
+) {
     val systemUiController = rememberSystemUiController()
     systemUiController.setStatusBarColor(
         color = MaterialTheme.colorScheme.primary
