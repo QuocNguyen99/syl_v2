@@ -112,7 +112,6 @@ fun MapRecordScreen(
 
     val locationManager = LocationManager(context, 3000, 1f)
 
-
     if (locationPermissionsState.allPermissionsGranted) {
 
         LaunchedEffect(key1 = locationManager.currentInfoTracking, block = {
@@ -120,7 +119,7 @@ fun MapRecordScreen(
                 Log.d(TAG, "currentInfoTracking: $it")
                 val newInfoTracking = InfoTracking(
                     speed = it.speed,
-                    kCal = it.kCal,
+                    kCal = it.kCal + mapUiState.infoTracking.kCal,
                     distance = it.distance + mapUiState.infoTracking.distance
                 )
                 viewModel.handleEvent(MapEvent.UpdateInfoTracking(newInfoTracking))
@@ -189,6 +188,7 @@ fun MapRecordScreen(
                     isRecord = isRecord,
                     speedMeter = mapUiState.infoTracking.speed,
                     distance = mapUiState.infoTracking.distance,
+                    calo = mapUiState.infoTracking.kCal,
                     onHide = { cardVisible = false }
                 ) {
                     isRecord = !isRecord
@@ -263,6 +263,7 @@ fun IconBack(onBack: () -> Unit) {
 fun CardInfo(
     modifier: Modifier = Modifier,
     speedMeter: Float = 0f,
+    calo: Float = 0f,
     distance: BigDecimal = BigDecimal(0),
     isRecord: Boolean = false,
     onHide: () -> Unit = {},
@@ -315,7 +316,7 @@ fun CardInfo(
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            InfoRunning(speedMeter, distance)
+            InfoRunning(speedMeter, distance, calo)
         }
     }
 }
@@ -324,6 +325,7 @@ fun CardInfo(
 fun InfoRunning(
     speedMeter: Float = 0f,
     distance: BigDecimal = BigDecimal(0),
+    calo: Float = 0f
 ) {
     Surface(
         shape = RoundedCornerShape(16.dp),
@@ -348,7 +350,7 @@ fun InfoRunning(
                     .background(Color.LightGray)
             )
 
-            ItemInfoRunning(iconId = R.drawable.ic_kcal, number = 20f, unit = "km")
+            ItemInfoRunning(iconId = R.drawable.ic_kcal, number = calo, unit = "kCal")
             Spacer(modifier = Modifier.width(8.dp))
             Box(
                 modifier = Modifier

@@ -13,11 +13,13 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.hqnguyen.syl_v2.data.InfoTracking
+import com.hqnguyen.syl_v2.utils.calculateCaloriesBurned
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.math.RoundingMode
 
 data class LongLatData(val lng: Double, val lat: Double)
 
@@ -78,11 +80,16 @@ class LocationManager(
                     preLocation?.let {
                         val speed = location.speed * 3.6 // Chuyển đổi m/s thành km/h
 
-                        val timeDifference = System.currentTimeMillis() - preTime // Thời gian tính bằng mili giây
-                        val distance = (speed * (timeDifference / 1000)) / 3600 // Kilometer
+                        val timeDifference =
+                            System.currentTimeMillis() - preTime // Thời gian tính bằng mili giây
+                        val distance = (speed * (timeDifference / 1000.0)) / 3600 // Kilometer
                         Log.d(TAG, "onLocationResult: ${distance.toBigDecimal()}")
-                        preTime = System.currentTimeMillis()
-                        val kCal = 1f
+                        val kCal = calculateCaloriesBurned(
+                            speed = speed,
+                            time = timeDifference / 1000.0 / 60
+                        )
+                        Log.d(TAG, "onLocationResult calo: $kCal")
+                        Log.d(TAG, "onLocationResult speed: $speed")
 
                         CoroutineScope(Dispatchers.IO).launch {
                             _currentInfoTracking.emit(
@@ -90,11 +97,12 @@ class LocationManager(
                                     speed = speed.toFloat(),
                                     kCal = kCal,
                                     distance = distance.toBigDecimal()
+                                        .setScale(2, RoundingMode.DOWN)
                                 )
                             )
                         }
                     }
-
+                    preTime = System.currentTimeMillis()
                     preLocation = LongLatData(location.longitude, location.latitude)
                 }
             }

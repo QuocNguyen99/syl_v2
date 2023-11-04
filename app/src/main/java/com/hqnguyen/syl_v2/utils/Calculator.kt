@@ -3,6 +3,7 @@ package com.hqnguyen.syl_v2.utils
 import android.location.Location
 import android.util.Log
 import com.mapbox.geojson.Point
+import java.util.Locale
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -46,4 +47,35 @@ fun calculateDistance(locationA: Point, locationB: Point): Double {
     val distance = locA.distanceTo(locB) / 1000
 
     return distance.toDouble()
+}
+
+fun calculateMet(speed: Double): Int {
+// Các giá trị MET khác nhau dựa trên tốc độ
+    return when {
+        speed < 8 -> 6 // Tốc độ chậm
+        speed < 13 -> 8
+        else -> 10
+    }
+}
+
+fun calculateCaloriesBurned(
+    weight: Double = 60.0,
+    age: Int = 24,
+    gender: String = "male",
+    speed: Double,
+    time: Double
+): Float {
+    val maleConstant = 0.2017
+    val femaleConstant = 0.074
+
+    val genderConstant: Double = when (gender.lowercase(Locale.getDefault())) {
+        "male" -> maleConstant
+
+        "female" -> femaleConstant
+        else -> maleConstant // Mặc định sử dụng giá trị cho nam nếu giới tính không xác định
+    }
+    val caloriesBurnedPerMinute =
+        ((genderConstant * weight) + (speed * 0.029) + (age * 0.012)) / 4.184
+
+    return (caloriesBurnedPerMinute * time).toFloat()
 }
