@@ -84,10 +84,7 @@ class LocationManager(
                             System.currentTimeMillis() - preTime // Thời gian tính bằng mili giây
                         val distance = (speed * (timeDifference / 1000.0)) / 3600 // Kilometer
                         Log.d(TAG, "onLocationResult: ${distance.toBigDecimal()}")
-                        val kCal = calculateCaloriesBurned(
-                            speed = speed,
-                            time = timeDifference / 1000.0 / 60
-                        )
+                        val kCal = calculateCaloriesBurned(speed = speed, time = timeDifference / 1000.0 / 60)
                         Log.d(TAG, "onLocationResult calo: $kCal")
                         Log.d(TAG, "onLocationResult speed: $speed")
 

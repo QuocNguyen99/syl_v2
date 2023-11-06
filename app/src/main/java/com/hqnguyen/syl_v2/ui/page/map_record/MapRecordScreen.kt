@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import androidx.annotation.DrawableRes
@@ -47,6 +48,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -77,8 +80,11 @@ import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
+import kotlinx.coroutines.delay
 import java.math.BigDecimal
 import java.text.DecimalFormat
+import java.util.Timer
+import java.util.TimerTask
 
 const val TAG = "MapRecordScreen"
 
@@ -91,9 +97,21 @@ fun MapRecordScreen(
 ) {
 
     val mapUiState by viewModel.state.collectAsState()
+    val timer = Timer()
 
+    // Create a mutable state variable to store the current time.
+    var currentTime by remember { mutableLongStateOf(0L) }
     var cardVisible by remember { mutableStateOf(true) }
     var isRecord by remember { mutableStateOf(false) }
+
+    // Create a TimerTask object to update the current time every second.
+    val timerTask = object : TimerTask() {
+        override fun run() {
+            // Update the current time.
+            Log.d(TAG, "currentTime: $currentTime")
+            currentTime++
+        }
+    }
 
     var currentBearing = 0.0
     val currentPosition: Point = Point.fromLngLat(0.0, 0.0)
@@ -108,6 +126,15 @@ fun MapRecordScreen(
 
     LaunchedEffect(key1 = true, block = {
         locationPermissionsState.launchMultiplePermissionRequest()
+    })
+
+    LaunchedEffect(key1 = isRecord, block = {
+        if (isRecord) {
+            timer.schedule(timerTask, 1000, 1000)
+        } else {
+            timer.cancel()
+            currentTime = 0
+        }
     })
 
     val locationManager = LocationManager(context, 3000, 1f)
@@ -189,6 +216,7 @@ fun MapRecordScreen(
                     speedMeter = mapUiState.infoTracking.speed,
                     distance = mapUiState.infoTracking.distance,
                     calo = mapUiState.infoTracking.kCal,
+                    countTime = currentTime,
                     onHide = { cardVisible = false }
                 ) {
                     isRecord = !isRecord
@@ -265,11 +293,15 @@ fun CardInfo(
     modifier: Modifier = Modifier,
     speedMeter: Float = 0f,
     calo: Float = 0f,
+    countTime: Long = 0L,
     distance: BigDecimal = BigDecimal(0),
     isRecord: Boolean = false,
     onHide: () -> Unit = {},
     onChangeRecord: () -> Unit = {}
 ) {
+    val hours = countTime / 3600
+    val minutes = (countTime % 3600) / 60
+    val remainingSeconds = countTime % 60
     Surface(
         shape = RoundedCornerShape(16.dp), color = Color.White, modifier = modifier
             .padding(32.dp)
@@ -297,7 +329,11 @@ fun CardInfo(
                         color = Color.Gray
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "01:09:44", color = Color.Black, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = String.format("%02d:%02d:%02d", hours, minutes, remainingSeconds),
+                        color = Color.Black,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Surface(
