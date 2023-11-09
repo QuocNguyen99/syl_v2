@@ -1,6 +1,7 @@
 [versions]
 accompanist-systemuicontroller = "0.27.0"
 agp = "8.1.2"
+androidx-room-compiler = "2.5.2"
 coil-compose = "2.4.0"
 constraintlayout-compose = "1.0.1"
 google-accompanist-permissions = "0.25.0"
@@ -26,8 +27,6 @@ room-runtime = "2.6.0"
 room-compiler = "2.6.0"
 hilt-navigation-compose = "1.1.0"
 room-ktx = "2.5.2"
-androidx-room-compiler = "2.5.2"
-androidx-room-room-compiler = "2.5.2"
 
 [libraries]
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt-navigation-compose" }
@@ -41,11 +40,10 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 androidx-material = { module = "androidx.compose.material:material", version.ref = "material" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "material" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
+androidx-room-compiler-v252 = { module = "androidx.room:room-compiler", version.ref = "androidx-room-compiler" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil-compose" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room-compiler" }
-androidx-room-compiler-v2 = { module = "androidx.room:room-compiler", version.ref = "androidx-room-room-compiler" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room-ktx" }
-androidx-room-room-compiler2 = { module = "androidx.room:room-compiler", version.ref = "androidx-room-compiler" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room-ktx" }
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt-android" }

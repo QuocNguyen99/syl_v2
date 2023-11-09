@@ -27,7 +27,7 @@ class HomeViewModel @Inject constructor(private val repositoryImpl: RecordReposi
         viewModelScope.launch(Dispatchers.IO) {
             repositoryImpl.getAllRecord().collect {
                 Log.d(TAG, "getAllRecord: $it")
-                mutableState.emit(mutableState.value.copy(listRecord = it))
+//                mutableState.emit(mutableState.value.copy(listRecord = it))
             }
         }
     }

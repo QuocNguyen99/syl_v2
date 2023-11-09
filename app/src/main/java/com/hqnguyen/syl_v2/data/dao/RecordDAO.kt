@@ -3,6 +3,8 @@ package com.hqnguyen.syl_v2.data.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
+import com.hqnguyen.syl_v2.data.entity.RecordAndInfo
 import com.hqnguyen.syl_v2.data.entity.RecordEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -10,8 +12,10 @@ import kotlinx.coroutines.flow.Flow
 interface RecordDao {
 
     @Query("SELECT * FROM recordentity")
-    fun getAllRecord(): Flow<List<RecordEntity>>
+    fun getAllRecord(): Flow<List<RecordAndInfo>>
 
     @Insert
     fun insertRecord(record: RecordEntity)
+    @Update
+    fun updateRecord(record: RecordEntity)
 }

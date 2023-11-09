@@ -225,6 +225,7 @@ fun MapRecordScreen(
                         viewModel.handleEvent(MapEvent.Start)
                     } else {
                         locationManager.stopLocationTracking()
+                        viewModel.handleEvent(MapEvent.Stop(countTime = currentTime))
                     }
                 }
             }

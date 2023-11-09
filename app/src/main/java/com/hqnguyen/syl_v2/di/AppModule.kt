@@ -2,6 +2,7 @@ package com.hqnguyen.syl_v2.di
 
 import android.content.Context
 import androidx.room.Room
+import com.hqnguyen.syl_v2.data.dao.InfoRecordDAO
 import com.hqnguyen.syl_v2.data.dao.RecordDao
 import com.hqnguyen.syl_v2.data.database.AppDatabase
 import dagger.Module
@@ -28,5 +29,11 @@ object AppModule {
     @Singleton
     fun provideRecordDao(appDatabase: AppDatabase): RecordDao {
         return appDatabase.recordDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideInfoRecordDao(appDatabase: AppDatabase): InfoRecordDAO {
+        return appDatabase.infoRecordDao()
     }
 }

@@ -4,8 +4,10 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity
-data class RecordEntity(
+data class InfoRecordEntity(
     @PrimaryKey(autoGenerate = true) val id: Long,
-    val timeStart: Long,
-    val countTime: Long
+    val idRecord: Long,
+    val speed: Float,
+    val calo: Float,
+    val distance: String,
 )
