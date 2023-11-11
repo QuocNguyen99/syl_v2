@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import androidx.annotation.DrawableRes
@@ -48,7 +47,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -80,11 +78,14 @@ import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.text.DecimalFormat
-import java.util.Timer
-import java.util.TimerTask
 
 const val TAG = "MapRecordScreen"
 
@@ -97,22 +98,10 @@ fun MapRecordScreen(
 ) {
 
     val mapUiState by viewModel.state.collectAsState()
-    val timer = Timer()
 
-    // Create a mutable state variable to store the current time.
     var currentTime by remember { mutableLongStateOf(0L) }
     var cardVisible by remember { mutableStateOf(true) }
     var isRecord by remember { mutableStateOf(false) }
-
-    // Create a TimerTask object to update the current time every second.
-    val timerTask = object : TimerTask() {
-        override fun run() {
-            // Update the current time.
-            Log.d(TAG, "currentTime: $currentTime")
-            currentTime++
-        }
-    }
-
     var currentBearing = 0.0
     val currentPosition: Point = Point.fromLngLat(0.0, 0.0)
 
@@ -128,30 +117,40 @@ fun MapRecordScreen(
         locationPermissionsState.launchMultiplePermissionRequest()
     })
 
-    LaunchedEffect(key1 = isRecord, block = {
-        if (isRecord) {
-            timer.schedule(timerTask, 1000, 1000)
-        } else {
-            timer.cancel()
-            currentTime = 0
-        }
-    })
+    var jobCountTime: Job? = null
 
-    val locationManager = LocationManager(context, 3000, 1f)
+    LaunchedEffect(isRecord) {
+        if (isRecord) {
+            jobCountTime = CoroutineScope(Dispatchers.IO).launch {
+                while (true) {
+                    if (isRecord && isActive) {
+                        currentTime++
+                        delay(1000)
+                    }
+                }
+            }
+        } else {
+            currentTime = 0L
+        }
+    }
+
+    val locationManager = LocationManager(context, 2000, 1f)
 
     if (locationPermissionsState.allPermissionsGranted) {
-
-        LaunchedEffect(key1 = locationManager.currentInfoTracking, block = {
-            locationManager.currentInfoTracking.collect {
-                Log.d(TAG, "currentInfoTracking: $it")
-                val newInfoTracking = InfoTracking(
-                    speed = it.speed,
-                    kCal = it.kCal + mapUiState.infoTracking.kCal,
-                    distance = it.distance + mapUiState.infoTracking.distance
-                )
-                viewModel.handleEvent(MapEvent.UpdateInfoTracking(newInfoTracking))
+        LaunchedEffect(locationManager.currentInfoTracking) {
+            CoroutineScope(Dispatchers.IO).launch {
+                locationManager.currentInfoTracking.collect {
+                    if (it.speed == 0f && it.kCal == 0f && it.distance == BigDecimal(0)) return@collect
+                    Log.d(TAG, "currentInfoTracking: $it")
+                    val newInfoTracking = InfoTracking(
+                        speed = it.speed,
+                        kCal = it.kCal + mapUiState.infoTracking.kCal,
+                        distance = it.distance + mapUiState.infoTracking.distance
+                    )
+                    viewModel.handleEvent(MapEvent.UpdateInfoTracking(newInfoTracking))
+                }
             }
-        })
+        }
 
         Box(
             modifier = Modifier
@@ -186,7 +185,8 @@ fun MapRecordScreen(
                     if ((currentPosition.latitude() != it.latitude()) || (currentPosition.longitude() != it.longitude())) {
                         mapView.getMapboxMap()
                             .setCamera(CameraOptions.Builder().center(it).zoom(14.0).build())
-                        mapView.gestures.focalPoint = mapView.getMapboxMap().pixelForCoordinate(it)
+                        mapView.gestures.focalPoint =
+                            mapView.getMapboxMap().pixelForCoordinate(it)
                     }
                 }
 
@@ -225,6 +225,7 @@ fun MapRecordScreen(
                         viewModel.handleEvent(MapEvent.Start)
                     } else {
                         locationManager.stopLocationTracking()
+                        jobCountTime?.cancel()
                         viewModel.handleEvent(MapEvent.Stop(countTime = currentTime))
                     }
                 }
@@ -331,7 +332,12 @@ fun CardInfo(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = String.format("%02d:%02d:%02d", hours, minutes, remainingSeconds),
+                        text = String.format(
+                            "%02d:%02d:%02d",
+                            hours,
+                            minutes,
+                            remainingSeconds
+                        ),
                         color = Color.Black,
                         fontWeight = FontWeight.Bold
                     )

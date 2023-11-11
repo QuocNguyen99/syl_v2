@@ -1,6 +1,6 @@
 package com.hqnguyen.syl_v2.ui.page.map_record
 
-import android.R.id
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hqnguyen.syl_v2.data.InfoTracking
@@ -21,8 +21,7 @@ import javax.inject.Inject
 class MapRecordViewModel @Inject constructor(
     private val repositoryRecordImpl: RecordRepositoryImpl,
     private val repositoryInfoImpl: InfoRecordRepositoryImpl
-) :
-    ViewModel() {
+) : ViewModel() {
 
     private val mutableState = MutableStateFlow(MapState())
     val state: StateFlow<MapState> = mutableState.asStateFlow()
@@ -31,18 +30,19 @@ class MapRecordViewModel @Inject constructor(
 
     fun handleEvent(event: MapEvent) = when (event) {
         is MapEvent.UpdateInfoTracking -> updateInfoTracking(event.infoTracking)
-        is MapEvent.Start -> updateTimeStart()
+        is MapEvent.Start -> startRecord()
         is MapEvent.Stop -> stopRecord(event.countTime)
     }
 
-    private fun updateTimeStart() {
+    private fun startRecord() {
         viewModelScope.launch {
+            val timeStart = System.currentTimeMillis()
             mutableState.emit(
                 mutableState.value.copy(
-                    timeStart = System.currentTimeMillis()
+                    timeStart = timeStart
                 )
             )
-            saveRecordLocal()
+            saveRecordLocal(timeStart)
         }
     }
 
@@ -54,53 +54,69 @@ class MapRecordViewModel @Inject constructor(
 
     private fun updateInfoTracking(infoTracking: InfoTracking) {
         viewModelScope.launch {
-            mutableState.emit(
-                mutableState.value.copy(
-                    infoTracking = infoTracking
+            try {
+                mutableState.emit(
+                    mutableState.value.copy(
+                        infoTracking = infoTracking
+                    )
                 )
-            )
-            saveInfoRecordLocal(infoTracking)
+                saveInfoRecordLocal(infoTracking)
+            } catch (ex: Exception) {
+                Log.e(TAG, "updateInfoTracking: ${ex.message}")
+            }
         }
     }
 
-    private fun saveRecordLocal() {
+    private fun saveRecordLocal(timeStart: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            currentRecord = RecordEntity(
-                id = System.currentTimeMillis(),
-                timeStart = state.value.timeStart,
-                countTime = 0L
-            )
-
-            currentRecord?.let {
-                repositoryRecordImpl.insertRecord(
-                    it
+            try {
+                currentRecord = RecordEntity(
+                    id = System.currentTimeMillis(),
+                    timeStart = timeStart,
+                    countTime = 0L
                 )
+
+                currentRecord?.let {
+                    repositoryRecordImpl.insertRecord(
+                        it
+                    )
+                }
+            } catch (ex: Exception) {
+                Log.e(TAG, "saveRecordLocal: ${ex.message}")
             }
         }
     }
 
     private fun updateRecordLocal(countTime: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            currentRecord?.let {
-                repositoryRecordImpl.updateRecord(
-                    it.copy(countTime = countTime)
-                )
+            try {
+                currentRecord?.let {
+                    repositoryRecordImpl.updateRecord(
+                        it.copy(countTime = countTime)
+                    )
+                }
+            } catch (ex: Exception) {
+                Log.e(TAG, "updateRecordLocal: ${ex.message}")
             }
         }
     }
 
     private fun saveInfoRecordLocal(infoTracking: InfoTracking) {
         viewModelScope.launch(Dispatchers.IO) {
-            currentRecord?.let {
-                repositoryInfoImpl.insertInfoRecord(
-                    InfoRecordEntity(
-                        id = System.currentTimeMillis(),
-                        idRecord = it.id,
-                        speed = infoTracking.speed,
-                        calo = infoTracking.kCal,
-                        distance = infoTracking.distance.toString(),
+            try {
+                currentRecord?.let {
+                    repositoryInfoImpl.insertInfoRecord(
+                        InfoRecordEntity(
+                            id = System.currentTimeMillis(),
+                            idRecord = it.id,
+                            speed = infoTracking.speed,
+                            calo = infoTracking.kCal,
+                            distance = infoTracking.distance.toString(),
+                        )
                     )
-                )
+                }
+            } catch (ex: Exception) {
+                Log.e(TAG, "updateRecordLocal: ${ex.message}")
             }
         }
     }
