@@ -49,6 +49,7 @@ class MapRecordViewModel @Inject constructor(
     private fun stopRecord(countTime: Long) {
         viewModelScope.launch {
             updateRecordLocal(countTime)
+            mutableState.emit(MapState())
         }
     }
 

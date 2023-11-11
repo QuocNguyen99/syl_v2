@@ -175,7 +175,6 @@ fun MapRecordScreen(
                 val onIndicatorBearingChangedListener = OnIndicatorBearingChangedListener {
                     if (it != currentBearing) {
                         currentBearing = it
-                        Log.d(TAG, "onIndicatorBearingChangedListener: $it")
                         mapView.getMapboxMap()
                             .setCamera(CameraOptions.Builder().bearing(it).zoom(14.0).build())
                     }

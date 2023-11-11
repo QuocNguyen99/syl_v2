@@ -23,12 +23,7 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val locationManager = LocationManager(this, 3000, 1f)
-        lifecycleScope.launch {
-            locationManager.currentInfoTracking.collect {
-                Log.d("MainActivity", "onCreate: $it")
-            }
-        }
+
         setContent {
             SYLTheme {
                 // A surface container using the 'background' color from the theme

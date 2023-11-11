@@ -28,7 +28,10 @@ class LocationManager(
     private var minimalDistance: Float
 ) : LocationCallback() {
     private var request: LocationRequest
-    var locationClient: FusedLocationProviderClient
+    private var locationClient: FusedLocationProviderClient
+
+    private val TAG = this.javaClass.name
+    private var isTracking = false
 
     init {
         // getting the location client
@@ -58,12 +61,26 @@ class LocationManager(
     }
 
     @SuppressLint("MissingPermission")
-    fun startLocationTracking() =
+    fun startLocationTracking() {
+        Log.e(TAG, "startLocationTracking")
+        isTracking = true
         locationClient.requestLocationUpdates(request, this, Looper.getMainLooper())
+    }
 
     fun stopLocationTracking() {
-        locationClient.flushLocations()
-        locationClient.removeLocationUpdates(this)
+        try {
+            Log.e(TAG, "stopLocationTracking")
+            isTracking = false
+            Log.d("LocationManager", "stopLocationTracking isTracking: $isTracking")
+            val task = locationClient.removeLocationUpdates(this)
+            if (task.isSuccessful) {
+                Log.d(TAG, "StopLocation updates successful! ");
+            } else {
+                Log.d(TAG, "StopLocation updates unsuccessful! " + task.exception?.stackTraceToString())
+            }
+        } catch (ex: Exception) {
+            Log.e(TAG, "stopLocationTracking: ${ex.message}")
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -76,40 +93,43 @@ class LocationManager(
                         val long = location.longitude
                         // Update data class with location data
                         Log.d("LocationManager", "onLocationResult: ($long,$lat)")
-                        preLocation?.let {
-                            val speed = location.speed * 3.6 // Chuyển đổi m/s thành km/h
+                        Log.d("LocationManager", "isTracking: $isTracking")
+                        if (isTracking) {
+                            preLocation?.let {
+                                val speed = location.speed * 3.6 // Chuyển đổi m/s thành km/h
 
-                            val timeDifference =
-                                System.currentTimeMillis() - preTime // Thời gian tính bằng mili giây
-                            val distance = (speed * (timeDifference / 1000.0)) / 3600 // Kilometer
-                            val kCal = calculateCaloriesBurned(
-                                speed = speed,
-                                time = timeDifference / 1000.0 / 60
-                            )
-                            Log.d(
-                                TAG,
-                                "onLocationResult calo: $kCal speed: $speed distance ${distance.toBigDecimal()}"
-                            )
+                                val timeDifference =
+                                    System.currentTimeMillis() - preTime // Thời gian tính bằng mili giây
+                                val distance =
+                                    (speed * (timeDifference / 1000.0)) / 3600 // Kilometer
+                                val kCal = calculateCaloriesBurned(
+                                    speed = speed,
+                                    time = timeDifference / 1000.0 / 60
+                                )
+                                Log.d(
+                                    "LocationManager",
+                                    "onLocationResult calo: $kCal speed: $speed distance ${distance.toBigDecimal()}"
+                                )
 
-                            CoroutineScope(Dispatchers.IO).launch {
-                                try {
-                                    Log.d(TAG, "onLocationResult: haha")
-                                    currentInfoTracking.emit(
-                                        InfoTracking(
-                                            speed = speed.toFloat(),
-                                            kCal = kCal,
-                                            distance = distance.toBigDecimal()
-                                                .setScale(2, RoundingMode.DOWN)
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    try {
+                                        currentInfoTracking.emit(
+                                            InfoTracking(
+                                                speed = speed.toFloat(),
+                                                kCal = kCal,
+                                                distance = distance.toBigDecimal()
+                                                    .setScale(2, RoundingMode.DOWN)
+                                            )
                                         )
-                                    )
-                                } catch (ex: Exception) {
-                                    Log.e("LocationManager", "${ex.message}")
+                                    } catch (ex: Exception) {
+                                        Log.e("LocationManager", "${ex.message}")
 
+                                    }
                                 }
                             }
+                            preTime = System.currentTimeMillis()
+                            preLocation = LongLatData(location.longitude, location.latitude)
                         }
-                        preTime = System.currentTimeMillis()
-                        preLocation = LongLatData(location.longitude, location.latitude)
                     }
                 }
                 .addOnFailureListener {

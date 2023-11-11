@@ -82,7 +82,7 @@ fun SYLApp(modifier: Modifier = Modifier) {
     }) {
         NavHost(
             navController = navController,
-            startDestination = "home",
+            startDestination = "map_record",
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None },
             popExitTransition = { ExitTransition.None },
