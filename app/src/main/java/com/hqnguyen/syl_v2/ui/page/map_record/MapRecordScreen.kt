@@ -96,16 +96,16 @@ fun MapRecordScreen(
     viewModel: MapRecordViewModel = hiltViewModel(),
     navigation: NavHostController? = null
 ) {
-
     val mapUiState by viewModel.state.collectAsState()
-
+    val context = LocalContext.current
+    Log.d(TAG, "instance: ${LocationManager.hashCode()}")
     var currentTime by remember { mutableLongStateOf(0L) }
     var cardVisible by remember { mutableStateOf(true) }
     var isRecord by remember { mutableStateOf(false) }
     var currentBearing = 0.0
     val currentPosition: Point = Point.fromLngLat(0.0, 0.0)
+    var jobCountTime: Job? = null
 
-    val context = LocalContext.current
     val locationPermissionsState = rememberMultiplePermissionsState(
         listOf(
             Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -116,8 +116,6 @@ fun MapRecordScreen(
     LaunchedEffect(key1 = true, block = {
         locationPermissionsState.launchMultiplePermissionRequest()
     })
-
-    var jobCountTime: Job? = null
 
     LaunchedEffect(isRecord) {
         if (isRecord) {
@@ -134,12 +132,10 @@ fun MapRecordScreen(
         }
     }
 
-    val locationManager = LocationManager(context, 2000, 1f)
-
     if (locationPermissionsState.allPermissionsGranted) {
-        LaunchedEffect(locationManager.currentInfoTracking) {
+        LaunchedEffect(LocationManager.currentInfoTracking) {
             CoroutineScope(Dispatchers.IO).launch {
-                locationManager.currentInfoTracking.collect {
+                LocationManager.currentInfoTracking.collect {
                     if (it.speed == 0f && it.kCal == 0f && it.distance == BigDecimal(0)) return@collect
                     Log.d(TAG, "currentInfoTracking: $it")
                     val newInfoTracking = InfoTracking(
@@ -220,10 +216,10 @@ fun MapRecordScreen(
                 ) {
                     isRecord = !isRecord
                     if (isRecord) {
-                        locationManager.startLocationTracking()
+                        LocationManager.startLocationTracking(context, 2000, 1f)
                         viewModel.handleEvent(MapEvent.Start)
                     } else {
-                        locationManager.stopLocationTracking()
+                        LocationManager.stopLocationTracking()
                         jobCountTime?.cancel()
                         viewModel.handleEvent(MapEvent.Stop(countTime = currentTime))
                     }
