@@ -1,4 +1,4 @@
-package com.hqnguyen.syl_v2.ui.page.map_record
+package com.hqnguyen.syl_v2.persentation.page.map_record
 
 import android.Manifest
 import android.content.Intent
@@ -98,7 +98,6 @@ fun MapRecordScreen(
 ) {
     val mapUiState by viewModel.state.collectAsState()
     val context = LocalContext.current
-    Log.d(TAG, "instance: ${LocationManager.hashCode()}")
     var currentTime by remember { mutableLongStateOf(0L) }
     var cardVisible by remember { mutableStateOf(true) }
     var isRecord by remember { mutableStateOf(false) }
@@ -114,6 +113,7 @@ fun MapRecordScreen(
     )
 
     LaunchedEffect(key1 = true, block = {
+        Log.d(TAG, "launchMultiplePermissionRequest")
         locationPermissionsState.launchMultiplePermissionRequest()
     })
 

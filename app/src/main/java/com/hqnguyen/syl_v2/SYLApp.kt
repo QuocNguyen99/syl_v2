@@ -35,11 +35,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.hqnguyen.syl_v2.ui.page.achievement.AchievementScreen
-import com.hqnguyen.syl_v2.ui.page.home.HomeScreen
-import com.hqnguyen.syl_v2.ui.page.map_record.MapRecordScreen
-import com.hqnguyen.syl_v2.ui.page.noti.NotificationScreen
-import com.hqnguyen.syl_v2.ui.page.profile.ProfileScreen
+import com.hqnguyen.syl_v2.persentation.page.achievement.AchievementScreen
+import com.hqnguyen.syl_v2.persentation.page.home.HomeScreen
+import com.hqnguyen.syl_v2.persentation.page.map_record.MapRecordScreen
+import com.hqnguyen.syl_v2.persentation.page.noti.NotificationScreen
+import com.hqnguyen.syl_v2.persentation.page.profile.ProfileScreen
 
 sealed class BottomNavigation(
     val route: String,
@@ -82,7 +82,7 @@ fun SYLApp(modifier: Modifier = Modifier) {
     }) {
         NavHost(
             navController = navController,
-            startDestination = "map_record",
+            startDestination = "home",
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None },
             popExitTransition = { ExitTransition.None },

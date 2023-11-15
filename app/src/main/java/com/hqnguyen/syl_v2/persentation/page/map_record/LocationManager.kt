@@ -1,4 +1,4 @@
-package com.hqnguyen.syl_v2.ui.page.map_record
+package com.hqnguyen.syl_v2.persentation.page.map_record
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -81,7 +81,6 @@ object LocationManager : LocationCallback() {
                         val long = location.longitude
                         // Update data class with location data
                         Log.d("LocationManager", "onLocationResult: ($long,$lat)")
-                        Log.d("LocationManager", "instance: ${this.hashCode()}")
                         preLocation?.let {
                             val speed = location.speed * 3.6 // Chuyển đổi m/s thành km/h
 

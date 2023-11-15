@@ -1,4 +1,4 @@
-package com.hqnguyen.syl_v2.ui.page.achievement
+package com.hqnguyen.syl_v2.persentation.page.achievement
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column

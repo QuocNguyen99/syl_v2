@@ -1,4 +1,4 @@
-package com.hqnguyen.syl_v2.ui.page.map_record
+package com.hqnguyen.syl_v2.persentation.page.map_record
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
