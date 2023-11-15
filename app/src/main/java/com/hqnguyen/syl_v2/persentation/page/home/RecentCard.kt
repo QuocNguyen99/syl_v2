@@ -64,9 +64,7 @@ fun Recent(
                 elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
             ) {
                 LazyColumn {
-                    itemsIndexed(
-                        items = listRecord,
-                        key = { _: Int, item: RecordAndInfo -> item }) { index, item ->
+                    itemsIndexed(items = listRecord) { index, item ->
                         ItemRecent(record = item)
 //                        if (index < listRecord.lastIndex)
 //                            Divider(
@@ -87,8 +85,7 @@ fun Recent(
             ) {
                 LazyColumn {
                     itemsIndexed(
-                        items = listRecord,
-                        key = { _: Int, item: RecordAndInfo -> item }) { index, item ->
+                        items = listRecord  ) { index, item ->
                         ItemRecent(record = item)
 //                        if (index < listRecord.lastIndex)
 //                            Divider(

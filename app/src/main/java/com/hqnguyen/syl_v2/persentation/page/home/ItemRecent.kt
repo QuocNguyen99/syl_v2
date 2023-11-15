@@ -1,5 +1,6 @@
 package com.hqnguyen.syl_v2.persentation.page.home
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +31,7 @@ import com.hqnguyen.syl_v2.data.entity.RecordAndInfo
 
 @Composable
 fun ItemRecent(record: RecordAndInfo) {
+    Log.d("ItemRecent", "record: $record")
     Row(
         modifier = Modifier
             .padding(8.dp, 8.dp, 8.dp, 8.dp)
