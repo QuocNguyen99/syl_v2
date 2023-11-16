@@ -7,11 +7,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -66,12 +68,12 @@ fun Recent(
                 LazyColumn {
                     itemsIndexed(items = listRecord) { index, item ->
                         ItemRecent(record = item)
-//                        if (index < listRecord.lastIndex)
-//                            Divider(
-//                                color = Color.LightGray,
-//                                thickness = 1.dp,
-//                                modifier = Modifier.padding(74.dp, 0.dp, 20.dp, 0.dp)
-//                            )
+                        if (index < listRecord.lastIndex)
+                            Divider(
+                                color = Color.LightGray,
+                                thickness = 1.dp,
+                                modifier = Modifier.padding(74.dp, 0.dp, 20.dp, 0.dp)
+                            )
                     }
                 }
             }
@@ -87,12 +89,12 @@ fun Recent(
                     itemsIndexed(
                         items = listRecord  ) { index, item ->
                         ItemRecent(record = item)
-//                        if (index < listRecord.lastIndex)
-//                            Divider(
-//                                color = Color.LightGray,
-//                                thickness = 1.dp,
-//                                modifier = Modifier.padding(74.dp, 0.dp, 20.dp, 0.dp)
-//                            )
+                        if (index < listRecord.lastIndex)
+                            Divider(
+                                color = Color.LightGray,
+                                thickness = 1.dp,
+                                modifier = Modifier.padding(74.dp, 0.dp, 20.dp, 0.dp)
+                            )
                     }
                 }
             }
