@@ -3,7 +3,9 @@ package com.hqnguyen.syl_v2.persentation.page.map_record
 import com.hqnguyen.syl_v2.data.InfoTracking
 
 data class MapState(
-    var isShowLoading: Boolean = false,
-    var timeStart: Long = System.currentTimeMillis(),
-    var infoTracking: InfoTracking = InfoTracking()
+    val isShowLoading: Boolean = false,
+    val timeStart: Long = System.currentTimeMillis(),
+    val isRecord: Boolean = false,
+    val countTime: Long = 0L,
+    val infoTracking: InfoTracking = InfoTracking()
 )

@@ -89,7 +89,6 @@ dependencies {
     implementation(libs.android)
     //Navigation
     implementation(libs.androidx.navigation.compose)
-
     //Coroutine
     implementation(libs.kotlinx.coroutines.android)
     //Livedata
@@ -107,4 +106,5 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     //Will remove when compose support request permission
     implementation(libs.accompanist.permissions.v0250)
+    implementation(libs.lottie.compose)
 }

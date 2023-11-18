@@ -1,6 +1,8 @@
 package com.hqnguyen.syl_v2.persentation.page.home
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -44,15 +46,18 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.hqnguyen.syl_v2.R
+import com.hqnguyen.syl_v2.persentation.page.map_record.MapState
 import com.hqnguyen.syl_v2.ui.theme.SYLTheme
 
+private const val TAG = "HomeScreen"
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    navigation: ((uri: String) -> Unit)? = null
+    sharedStated: MapState = MapState(),
+    navigationToMapScreen: () -> Unit = {}
 ) {
-    val TAG = "HomeScreen"
 
     val homeUiState by viewModel.state.collectAsState()
 
@@ -68,12 +73,14 @@ fun HomeScreen(
             .background(MaterialTheme.colorScheme.secondary)
     ) {
         AppBarHome()
-        Spacer(modifier = Modifier.height(20.dp))
-        BoxRunningInfo()
-        Recent(modifier = Modifier.padding(16.dp, 0.dp), homeUiState.listRecord) {
-            if (navigation != null) {
-                navigation("map_record")
+        if (sharedStated.isRecord) {
+            Spacer(modifier = Modifier.height(20.dp))
+            BoxRunningInfo {
+                navigationToMapScreen()
             }
+        }
+        Recent(modifier = Modifier.padding(16.dp, 0.dp), homeUiState.listRecord) {
+            navigationToMapScreen()
         }
     }
 }
@@ -209,7 +216,6 @@ fun CardAppBar(modifier: Modifier = Modifier) {
         }
     }
 }
-
 
 @Preview(showBackground = false)
 @Composable

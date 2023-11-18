@@ -2,14 +2,14 @@ package com.hqnguyen.syl_v2.utils
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.Duration
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun Long.toTimeWithFormat(format: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")): String {
+fun Long.toTimeWithFormat(format: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")): String {
     val localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(this), ZoneId.systemDefault())
     return localDateTime.format(format)
 }

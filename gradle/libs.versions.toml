@@ -20,6 +20,7 @@ activity-compose = "1.8.0"
 compose-bom = "2023.10.01"
 lifecycle-viewmodel-ktx = "2.6.2"
 lifecycle-viewmodel-compose = "2.6.2"
+lottie-compose = "6.1.0"
 material = "1.5.4"
 navigation-compose = "2.7.5"
 play-services-location = "21.0.1"
@@ -55,6 +56,7 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
 activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity-compose" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
+lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie-compose" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
 ui = { group = "androidx.compose.ui", name = "ui" }
 ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }

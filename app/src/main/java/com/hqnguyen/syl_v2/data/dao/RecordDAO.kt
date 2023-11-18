@@ -11,9 +11,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface RecordDao {
 
-    @Query("SELECT * FROM recordentity")
+    @Query("SELECT * FROM recordentity ORDER BY id DESC")
     fun getAllRecord(): Flow<List<RecordAndInfo>>
-
     @Insert
     fun insertRecord(record: RecordEntity)
     @Update

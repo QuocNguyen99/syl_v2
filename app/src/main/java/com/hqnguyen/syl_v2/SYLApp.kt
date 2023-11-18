@@ -9,7 +9,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.FormatListBulleted
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
@@ -22,6 +24,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,6 +32,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -38,6 +42,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.hqnguyen.syl_v2.persentation.page.achievement.AchievementScreen
 import com.hqnguyen.syl_v2.persentation.page.home.HomeScreen
 import com.hqnguyen.syl_v2.persentation.page.map_record.MapRecordScreen
+import com.hqnguyen.syl_v2.persentation.page.map_record.MapRecordViewModel
 import com.hqnguyen.syl_v2.persentation.page.noti.NotificationScreen
 import com.hqnguyen.syl_v2.persentation.page.profile.ProfileScreen
 
@@ -58,7 +63,7 @@ sealed class BottomNavigation(
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
-fun SYLApp(modifier: Modifier = Modifier) {
+fun SYLApp() {
 
     val systemUiController = rememberSystemUiController()
 
@@ -74,9 +79,18 @@ fun SYLApp(modifier: Modifier = Modifier) {
     val bottomBarRoutes = bottomNavigationItems.map { it.route }
     val shouldShowBottomBar: Boolean = navController
         .currentBackStackEntryAsState().value?.destination?.route in bottomBarRoutes
-
+    val shouldShowFAB: Boolean = navController
+        .currentBackStackEntryAsState().value?.destination?.route == bottomBarRoutes.first()
     systemUiController.isNavigationBarVisible = false
-    Scaffold(bottomBar = {
+
+    val sharedViewModel: MapRecordViewModel = hiltViewModel()
+    val uiStateShared by sharedViewModel.state.collectAsState()
+    Scaffold(floatingActionButton = {
+        if (shouldShowFAB)
+            FloatingButtonCustom {
+                navController.navigate("map_record")
+            }
+    }, bottomBar = {
         if (shouldShowBottomBar)
             BottomNavigationApp(bottomNavigationItems, navController)
     }) {
@@ -96,7 +110,10 @@ fun SYLApp(modifier: Modifier = Modifier) {
                 popExitTransition = null,
                 popEnterTransition = null
             ) {
-                HomeScreen(navigation = navController::navigate)
+                HomeScreen(
+                    navigationToMapScreen = { navController.navigate("map_record") },
+                    sharedStated = uiStateShared
+                )
             }
 
             composable(
@@ -135,7 +152,7 @@ fun SYLApp(modifier: Modifier = Modifier) {
                 popExitTransition = null,
                 popEnterTransition = null
             ) {
-                MapRecordScreen(navigation = navController)
+                MapRecordScreen(viewModel = sharedViewModel, navigation = navController)
             }
         }
     }
@@ -191,5 +208,16 @@ fun BottomNavigationApp(
                 )
             )
         }
+    }
+}
+
+@Composable
+fun FloatingButtonCustom(onClick: () -> Unit) {
+    androidx.compose.material.FloatingActionButton(
+        shape = CircleShape,
+        onClick = { onClick() },
+        backgroundColor = MaterialTheme.colorScheme.primary
+    ) {
+        Icon(imageVector = Icons.Outlined.Add, contentDescription = "", tint = Color.White)
     }
 }

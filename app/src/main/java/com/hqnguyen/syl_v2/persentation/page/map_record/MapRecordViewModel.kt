@@ -10,9 +10,12 @@ import com.hqnguyen.syl_v2.data.repository.InfoRecordRepositoryImpl
 import com.hqnguyen.syl_v2.data.repository.RecordRepositoryImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,11 +30,38 @@ class MapRecordViewModel @Inject constructor(
     val state: StateFlow<MapState> = mutableState.asStateFlow()
 
     private var currentRecord: RecordEntity? = null
-
+    private var jobCountTime: Job? = null
     fun handleEvent(event: MapEvent) = when (event) {
         is MapEvent.UpdateInfoTracking -> updateInfoTracking(event.infoTracking)
         is MapEvent.Start -> startRecord()
-        is MapEvent.Stop -> stopRecord(event.countTime)
+        is MapEvent.Stop -> stopRecord()
+    }
+
+    private fun startCountTime() {
+        jobCountTime = viewModelScope.launch(Dispatchers.IO) {
+            while (true) {
+                Log.d(TAG, "startCountTime: MapUiState ${mutableState.value.countTime}")
+                if (mutableState.value.isRecord && isActive) {
+                    mutableState.emit(
+                        mutableState.value.copy(
+                            countTime = mutableState.value.countTime + 1,
+                        )
+                    )
+                    delay(1000)
+                }
+            }
+        }
+    }
+
+    private fun stopCountTime() {
+        jobCountTime?.cancel()
+        viewModelScope.launch(Dispatchers.IO) {
+            mutableState.emit(
+                mutableState.value.copy(
+                    countTime = 0,
+                )
+            )
+        }
     }
 
     private fun startRecord() {
@@ -39,16 +69,19 @@ class MapRecordViewModel @Inject constructor(
             val timeStart = System.currentTimeMillis()
             mutableState.emit(
                 mutableState.value.copy(
-                    timeStart = timeStart
+                    timeStart = timeStart,
+                    isRecord = true
                 )
             )
+            startCountTime()
             saveRecordLocal(timeStart)
         }
     }
 
-    private fun stopRecord(countTime: Long) {
+    private fun stopRecord() {
+        stopCountTime()
         viewModelScope.launch {
-            updateRecordLocal(countTime)
+            updateRecordLocal(mutableState.value.countTime)
             mutableState.emit(MapState())
         }
     }

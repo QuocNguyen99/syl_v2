@@ -81,6 +81,7 @@ object LocationManager : LocationCallback() {
                         val long = location.longitude
                         // Update data class with location data
                         Log.d("LocationManager", "onLocationResult: ($long,$lat)")
+                        Log.d("LocationManager", "accuracy: (${location.accuracy})")
                         preLocation?.let {
                             val speed = location.speed * 3.6 // Chuyển đổi m/s thành km/h
 

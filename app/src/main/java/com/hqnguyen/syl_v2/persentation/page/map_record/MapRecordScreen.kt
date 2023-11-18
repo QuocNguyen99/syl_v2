@@ -47,7 +47,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -80,9 +79,6 @@ import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListen
 import com.mapbox.maps.plugin.locationcomponent.location
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.text.DecimalFormat
@@ -98,12 +94,9 @@ fun MapRecordScreen(
 ) {
     val mapUiState by viewModel.state.collectAsState()
     val context = LocalContext.current
-    var currentTime by remember { mutableLongStateOf(0L) }
     var cardVisible by remember { mutableStateOf(true) }
-    var isRecord by remember { mutableStateOf(false) }
     var currentBearing = 0.0
     val currentPosition: Point = Point.fromLngLat(0.0, 0.0)
-    var jobCountTime: Job? = null
 
     val locationPermissionsState = rememberMultiplePermissionsState(
         listOf(
@@ -111,26 +104,12 @@ fun MapRecordScreen(
             Manifest.permission.ACCESS_FINE_LOCATION,
         )
     )
+    Log.d(TAG, "MapUiState: ${mapUiState.countTime}")
 
     LaunchedEffect(key1 = true, block = {
         Log.d(TAG, "launchMultiplePermissionRequest")
         locationPermissionsState.launchMultiplePermissionRequest()
     })
-
-    LaunchedEffect(isRecord) {
-        if (isRecord) {
-            jobCountTime = CoroutineScope(Dispatchers.IO).launch {
-                while (true) {
-                    if (isRecord && isActive) {
-                        currentTime++
-                        delay(1000)
-                    }
-                }
-            }
-        } else {
-            currentTime = 0L
-        }
-    }
 
     if (locationPermissionsState.allPermissionsGranted) {
         LaunchedEffect(LocationManager.currentInfoTracking) {
@@ -207,21 +186,19 @@ fun MapRecordScreen(
                 ),
                 modifier = Modifier.align(Alignment.BottomCenter)) {
                 CardInfo(
-                    isRecord = isRecord,
+                    isRecord = mapUiState.isRecord,
                     speedMeter = mapUiState.infoTracking.speed,
                     distance = mapUiState.infoTracking.distance,
                     calo = mapUiState.infoTracking.kCal,
-                    countTime = currentTime,
+                    countTime = mapUiState.countTime,
                     onHide = { cardVisible = false }
                 ) {
-                    isRecord = !isRecord
-                    if (isRecord) {
+                    if (!mapUiState.isRecord) {
                         LocationManager.startLocationTracking(context, 2000, 1f)
                         viewModel.handleEvent(MapEvent.Start)
                     } else {
                         LocationManager.stopLocationTracking()
-                        jobCountTime?.cancel()
-                        viewModel.handleEvent(MapEvent.Stop(countTime = currentTime))
+                        viewModel.handleEvent(MapEvent.Stop)
                     }
                 }
             }
