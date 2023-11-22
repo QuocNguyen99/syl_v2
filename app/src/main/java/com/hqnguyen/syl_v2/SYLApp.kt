@@ -152,7 +152,7 @@ fun SYLApp() {
                 popExitTransition = null,
                 popEnterTransition = null
             ) {
-                MapRecordScreen(viewModel = sharedViewModel, navigation = navController)
+                MapRecordScreen(viewModel = sharedViewModel) { navController.popBackStack() }
             }
         }
     }

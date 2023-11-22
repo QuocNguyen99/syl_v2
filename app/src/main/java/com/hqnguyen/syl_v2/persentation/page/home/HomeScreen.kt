@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.hqnguyen.syl_v2.R
 import com.hqnguyen.syl_v2.persentation.page.map_record.MapState
@@ -56,12 +58,10 @@ private const val TAG = "HomeScreen"
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     sharedStated: MapState = MapState(),
-    navigationToMapScreen: () -> Unit = {}
-) {
+    navigationToMapScreen: () -> Unit = {},
+    ) {
 
-    val homeUiState by viewModel.state.collectAsState()
-
-    Log.d(TAG, "HomeScreen: $homeUiState")
+    val homeUiState by viewModel.state.collectAsStateWithLifecycle()
 
     val systemUiController = rememberSystemUiController()
     systemUiController.setStatusBarColor(
@@ -217,6 +217,7 @@ fun CardAppBar(modifier: Modifier = Modifier) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = false)
 @Composable
 fun HomeScreenPreview() {

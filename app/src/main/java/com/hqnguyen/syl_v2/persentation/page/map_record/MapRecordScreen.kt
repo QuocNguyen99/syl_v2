@@ -38,6 +38,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayCircleOutline
 import androidx.compose.material3.Button
@@ -45,6 +46,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -62,6 +64,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -79,24 +82,25 @@ import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListen
 import com.mapbox.maps.plugin.locationcomponent.location
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.text.DecimalFormat
 
 const val TAG = "MapRecordScreen"
 
+private var isFirst = true
+
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MapRecordScreen(
     viewModel: MapRecordViewModel = hiltViewModel(),
-    navigation: NavHostController? = null
+    onBack: () -> Unit = {}
 ) {
-    val mapUiState by viewModel.state.collectAsState()
+    val mapUiState by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var cardVisible by remember { mutableStateOf(true) }
-    var currentBearing = 0.0
-    val currentPosition: Point = Point.fromLngLat(0.0, 0.0)
 
     val locationPermissionsState = rememberMultiplePermissionsState(
         listOf(
@@ -104,7 +108,6 @@ fun MapRecordScreen(
             Manifest.permission.ACCESS_FINE_LOCATION,
         )
     )
-    Log.d(TAG, "MapUiState: ${mapUiState.countTime}")
 
     LaunchedEffect(key1 = true, block = {
         Log.d(TAG, "launchMultiplePermissionRequest")
@@ -113,17 +116,17 @@ fun MapRecordScreen(
 
     if (locationPermissionsState.allPermissionsGranted) {
         LaunchedEffect(LocationManager.currentInfoTracking) {
-            CoroutineScope(Dispatchers.IO).launch {
-                LocationManager.currentInfoTracking.collect {
-                    if (it.speed == 0f && it.kCal == 0f && it.distance == BigDecimal(0)) return@collect
-                    Log.d(TAG, "currentInfoTracking: $it")
-                    val newInfoTracking = InfoTracking(
-                        speed = it.speed,
-                        kCal = it.kCal + mapUiState.infoTracking.kCal,
-                        distance = it.distance + mapUiState.infoTracking.distance
-                    )
-                    viewModel.handleEvent(MapEvent.UpdateInfoTracking(newInfoTracking))
-                }
+            LocationManager.currentInfoTracking.collect {
+                if (it.speed == 0f && it.kCal == 0f && it.distance == BigDecimal(0)) return@collect
+                val newDistance =
+                    if (it.distance == BigDecimal(0)) mapUiState.infoTracking.distance else it.distance + mapUiState.infoTracking.distance
+                Log.d(TAG, "currentInfoTracking: $it")
+                val newInfoTracking = InfoTracking(
+                    speed = it.speed,
+                    kCal = it.kCal + mapUiState.infoTracking.kCal,
+                    distance = newDistance
+                )
+                viewModel.handleEvent(MapEvent.UpdateInfoTracking(newInfoTracking))
             }
         }
 
@@ -132,48 +135,10 @@ fun MapRecordScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .fillMaxSize()
         ) {
-            AndroidView(modifier = Modifier, factory = { context ->
-                ResourceOptionsManager.getDefault(
-                    context,
-                    context.getString(R.string.mapbox_access_token)
-                )
-
-                MapView(context).apply {
-                    getMapboxMap().loadStyleUri(Style.MAPBOX_STREETS) {}
-                }
-            }) { mapView ->
-                mapView.location.updateSettings {
-                    enabled = true
-                    pulsingEnabled = true
-                }
-
-                val onIndicatorBearingChangedListener = OnIndicatorBearingChangedListener {
-                    if (it != currentBearing) {
-                        currentBearing = it
-                        mapView.getMapboxMap()
-                            .setCamera(CameraOptions.Builder().bearing(it).zoom(14.0).build())
-                    }
-                }
-
-                val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
-                    if ((currentPosition.latitude() != it.latitude()) || (currentPosition.longitude() != it.longitude())) {
-                        mapView.getMapboxMap()
-                            .setCamera(CameraOptions.Builder().center(it).zoom(14.0).build())
-                        mapView.gestures.focalPoint =
-                            mapView.getMapboxMap().pixelForCoordinate(it)
-                    }
-                }
-
-                mapView.location.addOnIndicatorPositionChangedListener(
-                    onIndicatorPositionChangedListener
-                )
-                mapView.location.addOnIndicatorBearingChangedListener(
-                    onIndicatorBearingChangedListener
-                )
-            }
+            MapBoxView()
 
             IconBack {
-                navigation?.popBackStack()
+                onBack()
             }
 
             AnimatedVisibility(
@@ -191,7 +156,14 @@ fun MapRecordScreen(
                     distance = mapUiState.infoTracking.distance,
                     calo = mapUiState.infoTracking.kCal,
                     countTime = mapUiState.countTime,
-                    onHide = { cardVisible = false }
+                    onHide = { cardVisible = false },
+                    focusLocation = {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            isFirst = true
+                            delay(1000)
+                            isFirst = false
+                        }
+                    }
                 ) {
                     if (!mapUiState.isRecord) {
                         LocationManager.startLocationTracking(context, 2000, 1f)
@@ -233,12 +205,52 @@ fun MapRecordScreen(
             Button(onClick = {
                 val i = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                 val uri = Uri.fromParts("package", context.packageName, null)
-                i.setData(uri)
+                i.data = uri
                 context.startActivity(i)
             }) {
                 Text(text = "Setting")
             }
         }
+    }
+}
+
+@Composable
+fun MapBoxView() {
+    AndroidView(modifier = Modifier, factory = { context ->
+        ResourceOptionsManager.getDefault(
+            context,
+            context.getString(R.string.mapbox_access_token)
+        )
+
+        MapView(context).apply {
+            getMapboxMap().loadStyleUri(Style.MAPBOX_STREETS) {}
+        }
+    }) { mapView ->
+        Log.d(TAG, "CreateMap")
+        mapView.location.updateSettings {
+            enabled = true
+            pulsingEnabled = true
+        }
+
+        val onIndicatorBearingChangedListener = OnIndicatorBearingChangedListener {
+        }
+
+        val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
+            if (isFirst) {
+                isFirst = false
+                mapView.getMapboxMap()
+                    .setCamera(CameraOptions.Builder().center(it).zoom(14.0).build())
+                mapView.gestures.focalPoint =
+                    mapView.getMapboxMap().pixelForCoordinate(it)
+            }
+        }
+
+        mapView.location.addOnIndicatorPositionChangedListener(
+            onIndicatorPositionChangedListener
+        )
+        mapView.location.addOnIndicatorBearingChangedListener(
+            onIndicatorBearingChangedListener
+        )
     }
 }
 
@@ -271,7 +283,8 @@ fun CardInfo(
     distance: BigDecimal = BigDecimal(0),
     isRecord: Boolean = false,
     onHide: () -> Unit = {},
-    onChangeRecord: () -> Unit = {}
+    focusLocation: () -> Unit = {},
+    onChangeRecord: () -> Unit = {},
 ) {
     val hours = countTime / 3600
     val minutes = (countTime % 3600) / 60
@@ -315,20 +328,38 @@ fun CardInfo(
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                Surface(
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .size(40.dp)
-                        .clickable { onChangeRecord() },
-                ) {
-                    Icon(
-                        imageVector = if (isRecord) Icons.Outlined.Pause else Icons.Outlined.PlayCircleOutline,
-                        contentDescription = "Back",
-                        tint = Color.White,
+                Row {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
-                            .padding(6.dp)
-                    )
+                            .clip(RoundedCornerShape(8.dp))
+                            .size(40.dp)
+                            .clickable { focusLocation() },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.MyLocation,
+                            contentDescription = "Focus",
+                            tint = Color.White,
+                            modifier = Modifier
+                                .padding(6.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Surface(
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .size(40.dp)
+                            .clickable { onChangeRecord() },
+                    ) {
+                        Icon(
+                            imageVector = if (isRecord) Icons.Outlined.Pause else Icons.Outlined.PlayCircleOutline,
+                            contentDescription = "Record",
+                            tint = Color.White,
+                            modifier = Modifier
+                                .padding(6.dp)
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -336,78 +367,6 @@ fun CardInfo(
         }
     }
 }
-
-@Composable
-fun InfoRunning(
-    speedMeter: Float = 0f,
-    distance: BigDecimal = BigDecimal(0),
-    calo: Float = 0f
-) {
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.secondary,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            ItemInfoRunning(
-                iconId = R.drawable.ic_speed_meter,
-                number = speedMeter,
-                unit = "km/h"
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .height(40.dp)
-                    .background(Color.LightGray)
-            )
-
-            ItemInfoRunning(iconId = R.drawable.ic_kcal, number = calo, unit = "kCal")
-            Spacer(modifier = Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .height(40.dp)
-                    .background(Color.LightGray)
-            )
-
-            ItemInfoRunning(
-                iconId = R.drawable.ic_distance,
-                numberBigDecimal = distance,
-                unit = "km"
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-        }
-    }
-}
-
-@Composable
-fun ItemInfoRunning(
-    @DrawableRes iconId: Int,
-    number: Float = 0f,
-    numberBigDecimal: BigDecimal = BigDecimal(0),
-    unit: String
-) {
-    val decimalFormat = DecimalFormat("0.00")
-    val painted = painterResource(id = iconId)
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Image(painter = painted, contentDescription = "", modifier = Modifier.size(32.dp))
-        Spacer(modifier = Modifier.width(8.dp))
-        Column {
-            Text(
-                text = if (number != 0f) decimalFormat.format(number) else numberBigDecimal.toString(),
-                color = Color.Gray
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = unit, color = Color.Black)
-        }
-    }
-}
-
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Preview

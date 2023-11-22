@@ -107,4 +107,6 @@ dependencies {
     //Will remove when compose support request permission
     implementation(libs.accompanist.permissions.v0250)
     implementation(libs.lottie.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+
 }
