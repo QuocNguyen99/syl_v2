@@ -45,6 +45,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
@@ -108,6 +109,12 @@ fun MapRecordScreen(
             Manifest.permission.ACCESS_FINE_LOCATION,
         )
     )
+
+    DisposableEffect(Unit) {
+        onDispose {
+            isFirst = true
+        }
+    }
 
     LaunchedEffect(key1 = true, block = {
         Log.d(TAG, "launchMultiplePermissionRequest")
@@ -236,6 +243,8 @@ fun MapBoxView() {
         }
 
         val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
+            Log.d(TAG, "isFirst $isFirst")
+
             if (isFirst) {
                 isFirst = false
                 mapView.getMapboxMap()
