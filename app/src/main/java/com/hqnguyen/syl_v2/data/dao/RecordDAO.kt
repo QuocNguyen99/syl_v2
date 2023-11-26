@@ -16,5 +16,5 @@ interface RecordDao {
     @Insert
     fun insertRecord(record: RecordEntity)
     @Update
-    fun updateRecord(record: RecordEntity)
+    fun updateRecord(record: RecordEntity): Int
 }

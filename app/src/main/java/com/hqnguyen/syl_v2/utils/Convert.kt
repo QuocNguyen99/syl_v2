@@ -15,13 +15,14 @@ fun Long.toTimeWithFormat(format: DateTimeFormatter = DateTimeFormatter.ofPatter
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun Long.secondToDayHour(): String {
+fun Long.secondToHourMinute(): String {
     val duration = Duration.ofSeconds(this)
 
     // Extract hours and minutes from the Duration
     val hours = duration.toHours()
     val minutes = duration.minusHours(hours).toMinutes()
+    val seconds = duration.minusHours(hours).minusMinutes(minutes).seconds
 
-    // Format hours and minutes as "hh:mm"
-    return String.format("%02d:%02d", hours, minutes)
+    // Format hours and minutes as "hh:mm:ss"
+    return String.format("%02d:%02d:%02d", hours, minutes, seconds)
 }

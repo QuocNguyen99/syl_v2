@@ -8,6 +8,6 @@ import javax.inject.Inject
 
 class RecordRepositoryImpl @Inject constructor(private val recordDAO: RecordDao) {
     fun insertRecord(entity: RecordEntity) = recordDAO.insertRecord(entity)
-    fun updateRecord(entity: RecordEntity) = recordDAO.updateRecord(entity)
+    fun updateRecord(entity: RecordEntity): Int = recordDAO.updateRecord(entity)
     fun getAllRecord(): Flow<List<RecordAndInfo>> = recordDAO.getAllRecord()
 }

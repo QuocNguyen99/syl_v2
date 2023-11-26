@@ -25,16 +25,22 @@ class MapRecordViewModel @Inject constructor(
     private val repositoryRecordImpl: RecordRepositoryImpl,
     private val repositoryInfoImpl: InfoRecordRepositoryImpl
 ) : ViewModel() {
+    companion object {
+        private const val TAG = "MapRecordViewModel"
+    }
 
     private val mutableState = MutableStateFlow(MapState())
     val state: StateFlow<MapState> = mutableState.asStateFlow()
 
     private var currentRecord: RecordEntity? = null
     private var jobCountTime: Job? = null
-    fun handleEvent(event: MapEvent) = when (event) {
-        is MapEvent.UpdateInfoTracking -> updateInfoTracking(event.infoTracking)
-        is MapEvent.Start -> startRecord()
-        is MapEvent.Stop -> stopRecord()
+    fun handleEvent(event: MapEvent) {
+        Log.d(TAG, "handleEvent event $event")
+        when (event) {
+            is MapEvent.UpdateInfoTracking -> updateInfoTracking(event.infoTracking)
+            is MapEvent.Start -> startRecord()
+            is MapEvent.Stop -> stopRecord()
+        }
     }
 
     private fun startCountTime() {
@@ -79,9 +85,11 @@ class MapRecordViewModel @Inject constructor(
     }
 
     private fun stopRecord() {
+        Log.d(TAG, "stopRecord")
+        val countTime = mutableState.value.countTime
         stopCountTime()
         viewModelScope.launch {
-            updateRecordLocal(mutableState.value.countTime)
+            updateRecordLocal(countTime)
             mutableState.emit(MapState())
         }
     }
@@ -125,9 +133,10 @@ class MapRecordViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 currentRecord?.let {
-                    repositoryRecordImpl.updateRecord(
-                        it.copy(countTime = countTime)
-                    )
+                    val newRecord = it.copy(countTime = countTime)
+                    Log.d(TAG, "updateRecordLocal newRecord: $newRecord")
+                    val result = repositoryRecordImpl.updateRecord(newRecord)
+                    Log.e(TAG, "updateRecordLocal status update: $result")
                 }
             } catch (ex: Exception) {
                 Log.e(TAG, "updateRecordLocal: ${ex.message}")
