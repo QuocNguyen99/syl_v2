@@ -86,7 +86,11 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
     //Mapbox
-    implementation(libs.android)
+    implementation("com.mapbox.extension:maps-compose:0.1.0")
+
+    // Pick your versions of Android Mapbox Map SDK
+    // Note that Compose extension is compatible with Maps SDK v11.0+.
+    implementation("com.mapbox.maps:android:11.0.0-beta.1")
     //Navigation
     implementation(libs.androidx.navigation.compose)
     //Coroutine
