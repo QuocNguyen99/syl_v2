@@ -58,7 +58,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -66,14 +65,15 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.hqnguyen.syl_v2.R
 import com.hqnguyen.syl_v2.data.InfoTracking
 import com.hqnguyen.syl_v2.ui.theme.SYLTheme
-import com.mapbox.maps.CameraOptions
-import com.mapbox.maps.MapView
-import com.mapbox.maps.ResourceOptionsManager
+import com.mapbox.geojson.Point
+import com.mapbox.maps.MapInitOptions
 import com.mapbox.maps.Style
-import com.mapbox.maps.plugin.gestures.gestures
-import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
-import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
-import com.mapbox.maps.plugin.locationcomponent.location
+import com.mapbox.maps.dsl.cameraOptions
+import com.mapbox.maps.extension.compose.MapboxMap
+import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
+import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
+import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -113,6 +113,15 @@ fun MapRecordScreen(
         locationPermissionsState.launchMultiplePermissionRequest()
     })
 
+    val mapViewportState = rememberMapViewportState {
+        // Set the initial camera position
+        setCameraOptions {
+            center(Point.fromLngLat(0.0, 0.0))
+            zoom(0.0)
+            pitch(0.0)
+        }
+    }
+
     if (locationPermissionsState.allPermissionsGranted) {
         LaunchedEffect(LocationManager.currentInfoTracking) {
             LocationManager.currentInfoTracking.collect {
@@ -123,8 +132,17 @@ fun MapRecordScreen(
                 val newInfoTracking = InfoTracking(
                     speed = it.speed,
                     kCal = it.kCal + mapUiState.infoTracking.kCal,
-                    distance = newDistance
+                    distance = newDistance,
+                    location = it.location
                 )
+
+                mapViewportState.flyTo(
+                    cameraOptions = cameraOptions {
+                        center(Point.fromLngLat(it.location.lng, it.location.lat))
+                        zoom(14.0)
+                        pitch(45.0)
+                    },
+                    MapAnimationOptions.mapAnimationOptions { duration(50) })
                 viewModel.handleEvent(MapEvent.UpdateInfoTracking(newInfoTracking))
             }
         }
@@ -134,7 +152,7 @@ fun MapRecordScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .fillMaxSize()
         ) {
-            MapBoxView()
+            MapBoxView(mapUiState.infoTracking.location, mapViewportState)
 
             IconBack {
                 onBack()
@@ -214,45 +232,54 @@ fun MapRecordScreen(
 }
 
 @Composable
-fun MapBoxView() {
-    AndroidView(modifier = Modifier, factory = { context ->
-        ResourceOptionsManager.getDefault(
-            context,
-            context.getString(R.string.mapbox_access_token)
-        )
+fun MapBoxView(location: LongLatData, mapViewportState: MapViewportState) {
 
-        MapView(context).apply {
-            getMapboxMap().loadStyleUri(Style.MAPBOX_STREETS) {}
+    MapboxMap(
+        modifier = Modifier.fillMaxSize(),
+        mapViewportState = mapViewportState,
+        mapInitOptionsFactory = { context ->
+            MapInitOptions(
+                context = context,
+                styleUri = Style.MAPBOX_STREETS,
+            )
         }
-    }) { mapView ->
-        Log.d(TAG, "CreateMap")
-        mapView.location.updateSettings {
-            enabled = true
-            pulsingEnabled = true
-        }
-
-        val onIndicatorBearingChangedListener = OnIndicatorBearingChangedListener {
-        }
-
-        val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
-            Log.d(TAG, "isFirst $isFirst")
-
-            if (isFirst) {
-                isFirst = false
-                mapView.getMapboxMap()
-                    .setCamera(CameraOptions.Builder().center(it).zoom(14.0).build())
-                mapView.gestures.focalPoint =
-                    mapView.getMapboxMap().pixelForCoordinate(it)
-            }
-        }
-
-        mapView.location.addOnIndicatorPositionChangedListener(
-            onIndicatorPositionChangedListener
-        )
-        mapView.location.addOnIndicatorBearingChangedListener(
-            onIndicatorBearingChangedListener
-        )
+    ) {
+        PointAnnotation(point = Point.fromLngLat(location.lng, location.lat))
     }
+//    AndroidView(modifier = Modifier, factory = { context ->
+//
+//        MapView(context).apply {
+//            getMapboxMap().loadStyleUri(Style.MAPBOX_STREETS) {}
+//        }
+//    }) { mapView ->
+//        Log.d(TAG, "CreateMap")
+//        mapView.location.updateSettings {
+//            enabled = true
+//            pulsingEnabled = true
+//        }
+//
+//        val onIndicatorBearingChangedListener = OnIndicatorBearingChangedListener {
+//        }
+//
+//        val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
+//            Log.d(TAG, "isFirst $isFirst")
+//
+//            if (isFirst) {
+//                isFirst = false
+//                mapView.getMapboxMap()
+//                    .setCamera(CameraOptions.Builder().center(it).zoom(14.0).build())
+//                mapView.gestures.focalPoint =
+//                    mapView.getMapboxMap().pixelForCoordinate(it)
+//            }
+//        }
+//
+//        mapView.location.addOnIndicatorPositionChangedListener(
+//            onIndicatorPositionChangedListener
+//        )
+//        mapView.location.addOnIndicatorBearingChangedListener(
+//            onIndicatorBearingChangedListener
+//        )
+//    }
 }
 
 @OptIn(ExperimentalMaterialApi::class)

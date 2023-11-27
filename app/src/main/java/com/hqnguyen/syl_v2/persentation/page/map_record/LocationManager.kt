@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.math.RoundingMode
 
-data class LongLatData(val lng: Double, val lat: Double)
+data class LongLatData(val lng: Double = 0.0, val lat: Double = 0.0)
 
 object LocationManager : LocationCallback() {
     private var locationClient: FusedLocationProviderClient? = null
@@ -105,7 +105,8 @@ object LocationManager : LocationCallback() {
                                             speed = speed.toFloat(),
                                             kCal = kCal,
                                             distance = distance.toBigDecimal()
-                                                .setScale(2, RoundingMode.DOWN)
+                                                .setScale(2, RoundingMode.DOWN),
+                                            location = LongLatData(location.longitude, location.latitude)
                                         )
                                     )
                                 } catch (ex: Exception) {
