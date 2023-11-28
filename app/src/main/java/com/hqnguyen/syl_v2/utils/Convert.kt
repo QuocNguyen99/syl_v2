@@ -15,7 +15,7 @@ fun Long.toTimeWithFormat(format: DateTimeFormatter = DateTimeFormatter.ofPatter
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun Long.secondToHourMinute(): String {
+fun Long.secondToHourMinuteSecond(): String {
     val duration = Duration.ofSeconds(this)
 
     // Extract hours and minutes from the Duration

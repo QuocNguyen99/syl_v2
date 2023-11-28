@@ -1,5 +1,7 @@
 package com.hqnguyen.syl_v2.persentation.page.home
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,11 +30,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.hqnguyen.syl_v2.R
+import com.hqnguyen.syl_v2.data.InfoTracking
 import com.hqnguyen.syl_v2.ui.theme.colorBackgroundColor
+import com.hqnguyen.syl_v2.utils.secondToHourMinuteSecond
+import java.math.BigDecimal
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BoxRunningInfo(navigationToMapRecord: () -> Unit = {}) {
+fun BoxRunningInfo(
+    distance: BigDecimal = BigDecimal(0),
+    calo: Float = 0.0f,
+    countTime: Long = 0L,
+    navigationToMapRecord: () -> Unit = {}
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -79,14 +90,14 @@ fun BoxRunningInfo(navigationToMapRecord: () -> Unit = {}) {
             Spacer(modifier = Modifier.width(8.dp))
             Column {
                 Text(
-                    text = "Current jogging",
+                    text = "Running",
                     color = Color.White,
                     fontWeight = FontWeight.W500,
                     fontSize = 13.sp
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    text = "01:09:44",
+                    text = countTime.secondToHourMinuteSecond(),
                     color = Color.White,
                     fontWeight = FontWeight.Normal,
                     fontSize = 11.sp
@@ -95,14 +106,14 @@ fun BoxRunningInfo(navigationToMapRecord: () -> Unit = {}) {
             Spacer(modifier = Modifier.weight(1f))
             Column {
                 Text(
-                    text = "10,9 km",
+                    text = "${distance} km",
                     color = Color.White,
                     fontWeight = FontWeight.W500,
                     fontSize = 13.sp
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    text = "538 kcal",
+                    text = "${String.format("%.1f", calo)} kcal",
                     color = Color.White,
                     fontWeight = FontWeight.Normal,
                     fontSize = 11.sp

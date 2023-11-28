@@ -1,7 +1,6 @@
 package com.hqnguyen.syl_v2.persentation.page.home
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -75,7 +74,7 @@ fun HomeScreen(
         AppBarHome()
         if (sharedStated.isRecord) {
             Spacer(modifier = Modifier.height(20.dp))
-            BoxRunningInfo {
+            BoxRunningInfo(sharedStated.infoTracking.distance,sharedStated.infoTracking.kCal,sharedStated.countTime) {
                 navigationToMapScreen()
             }
         }

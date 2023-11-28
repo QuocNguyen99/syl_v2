@@ -66,9 +66,10 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.hqnguyen.syl_v2.R
 import com.hqnguyen.syl_v2.data.InfoTracking
 import com.hqnguyen.syl_v2.ui.theme.SYLTheme
+import com.mapbox.common.MapboxOptions
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
-import com.mapbox.maps.ResourceOptionsManager
+import com.mapbox.maps.MapboxMapsOptions
 import com.mapbox.maps.Style
 import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
@@ -216,13 +217,10 @@ fun MapRecordScreen(
 @Composable
 fun MapBoxView() {
     AndroidView(modifier = Modifier, factory = { context ->
-        ResourceOptionsManager.getDefault(
-            context,
-            context.getString(R.string.mapbox_access_token)
-        )
+        MapboxOptions.accessToken = context.getString(R.string.mapbox_access_token)
 
         MapView(context).apply {
-            getMapboxMap().loadStyleUri(Style.MAPBOX_STREETS) {}
+            mapboxMap.loadStyle(Style.MAPBOX_STREETS) {}
         }
     }) { mapView ->
         Log.d(TAG, "CreateMap")
@@ -232,18 +230,15 @@ fun MapBoxView() {
         }
 
         val onIndicatorBearingChangedListener = OnIndicatorBearingChangedListener {
+            mapView.mapboxMap
+                .setCamera(CameraOptions.Builder().bearing(it).zoom(14.0).build())
         }
 
         val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
-            Log.d(TAG, "isFirst $isFirst")
-
-            if (isFirst) {
-                isFirst = false
-                mapView.getMapboxMap()
-                    .setCamera(CameraOptions.Builder().center(it).zoom(14.0).build())
-                mapView.gestures.focalPoint =
-                    mapView.getMapboxMap().pixelForCoordinate(it)
-            }
+            mapView.mapboxMap
+                .setCamera(CameraOptions.Builder().center(it).zoom(14.0).build())
+            mapView.gestures.focalPoint =
+                mapView.mapboxMap.pixelForCoordinate(it)
         }
 
         mapView.location.addOnIndicatorPositionChangedListener(

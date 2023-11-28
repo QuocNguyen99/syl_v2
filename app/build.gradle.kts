@@ -86,7 +86,7 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
     //Mapbox
-    implementation(libs.android)
+    implementation("com.mapbox.maps:android:11.0.0-rc.2")
     //Navigation
     implementation(libs.androidx.navigation.compose)
     //Coroutine
