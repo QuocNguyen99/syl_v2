@@ -1,6 +1,7 @@
 package com.hqnguyen.syl_v2.persentation.page.home
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -58,7 +59,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     sharedStated: MapState = MapState(),
     navigationToMapScreen: () -> Unit = {},
-    ) {
+) {
 
     val homeUiState by viewModel.state.collectAsStateWithLifecycle()
 
@@ -66,6 +67,7 @@ fun HomeScreen(
     systemUiController.setStatusBarColor(
         color = MaterialTheme.colorScheme.primary
     )
+    Log.d("HomeScreen", "HomeScreen: $sharedStated")
     Column(
         Modifier
             .fillMaxSize()
@@ -74,7 +76,11 @@ fun HomeScreen(
         AppBarHome()
         if (sharedStated.isRecord) {
             Spacer(modifier = Modifier.height(20.dp))
-            BoxRunningInfo(sharedStated.infoTracking.distance,sharedStated.infoTracking.kCal,sharedStated.countTime) {
+            BoxRunningInfo(
+                sharedStated.infoTracking.distance,
+                sharedStated.infoTracking.kCal,
+                sharedStated.countTime
+            ) {
                 navigationToMapScreen()
             }
         }
