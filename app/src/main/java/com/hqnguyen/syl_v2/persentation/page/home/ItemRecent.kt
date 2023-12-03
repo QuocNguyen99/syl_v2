@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hqnguyen.syl_v2.R
 import com.hqnguyen.syl_v2.data.entity.RecordAndInfo
-import com.hqnguyen.syl_v2.utils.secondToHourMinute
+import com.hqnguyen.syl_v2.utils.secondToHourMinuteSecond
 import com.hqnguyen.syl_v2.utils.toTimeWithFormat
 
 
@@ -65,7 +65,7 @@ fun ItemRecent(record: RecordAndInfo) {
             )
             Spacer(modifier = Modifier.width(10.dp))
             Text(
-                text = "Run in: ${record.record?.countTime?.secondToHourMinute() ?: ""}",
+                text = "Run in: ${record.record?.countTime?.secondToHourMinuteSecond() ?: ""}",
                 color = Color.Black,
                 fontWeight = FontWeight.Bold,
                 fontSize = 13.sp,

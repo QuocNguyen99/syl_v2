@@ -65,8 +65,10 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.hqnguyen.syl_v2.R
 import com.hqnguyen.syl_v2.data.InfoTracking
 import com.hqnguyen.syl_v2.ui.theme.SYLTheme
-import com.mapbox.geojson.Point
-import com.mapbox.maps.MapInitOptions
+import com.mapbox.common.MapboxOptions
+import com.mapbox.maps.CameraOptions
+import com.mapbox.maps.MapView
+import com.mapbox.maps.MapboxMapsOptions
 import com.mapbox.maps.Style
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.MapboxMap
@@ -232,7 +234,31 @@ fun MapRecordScreen(
 }
 
 @Composable
-fun MapBoxView(location: LongLatData, mapViewportState: MapViewportState) {
+fun MapBoxView() {
+    AndroidView(modifier = Modifier, factory = { context ->
+        MapboxOptions.accessToken = context.getString(R.string.mapbox_access_token)
+
+        MapView(context).apply {
+            mapboxMap.loadStyle(Style.MAPBOX_STREETS) {}
+        }
+    }) { mapView ->
+        Log.d(TAG, "CreateMap")
+        mapView.location.updateSettings {
+            enabled = true
+            pulsingEnabled = true
+        }
+
+        val onIndicatorBearingChangedListener = OnIndicatorBearingChangedListener {
+            mapView.mapboxMap
+                .setCamera(CameraOptions.Builder().bearing(it).zoom(14.0).build())
+        }
+
+        val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
+            mapView.mapboxMap
+                .setCamera(CameraOptions.Builder().center(it).zoom(14.0).build())
+            mapView.gestures.focalPoint =
+                mapView.mapboxMap.pixelForCoordinate(it)
+        }
 
     MapboxMap(
         modifier = Modifier.fillMaxSize(),

@@ -59,7 +59,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     sharedStated: MapState = MapState(),
     navigationToMapScreen: () -> Unit = {},
-    ) {
+) {
 
     val homeUiState by viewModel.state.collectAsStateWithLifecycle()
 
@@ -67,6 +67,7 @@ fun HomeScreen(
     systemUiController.setStatusBarColor(
         color = MaterialTheme.colorScheme.primary
     )
+    Log.d("HomeScreen", "HomeScreen: $sharedStated")
     Column(
         Modifier
             .fillMaxSize()
@@ -75,7 +76,11 @@ fun HomeScreen(
         AppBarHome()
         if (sharedStated.isRecord) {
             Spacer(modifier = Modifier.height(20.dp))
-            BoxRunningInfo {
+            BoxRunningInfo(
+                sharedStated.infoTracking.distance,
+                sharedStated.infoTracking.kCal,
+                sharedStated.countTime
+            ) {
                 navigationToMapScreen()
             }
         }
