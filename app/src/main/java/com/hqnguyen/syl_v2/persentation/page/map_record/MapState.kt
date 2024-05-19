@@ -1,5 +1,6 @@
 package com.hqnguyen.syl_v2.persentation.page.map_record
 
+import android.location.Location
 import com.hqnguyen.syl_v2.data.InfoTracking
 
 data class MapState(
@@ -7,5 +8,6 @@ data class MapState(
     val timeStart: Long = System.currentTimeMillis(),
     val isRecord: Boolean = false,
     val countTime: Long = 0L,
-    val infoTracking: InfoTracking = InfoTracking()
+    val infoTracking: InfoTracking = InfoTracking(),
+    val currentLocation: Location? = null
 )

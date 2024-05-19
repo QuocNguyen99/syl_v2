@@ -43,7 +43,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,23 +57,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.hqnguyen.syl_v2.R
-import com.hqnguyen.syl_v2.data.InfoTracking
 import com.hqnguyen.syl_v2.ui.theme.SYLTheme
-import com.mapbox.common.MapboxOptions
-import com.mapbox.maps.CameraOptions
-import com.mapbox.maps.MapView
-import com.mapbox.maps.MapboxMapsOptions
-import com.mapbox.maps.Style
-import com.mapbox.maps.plugin.gestures.gestures
-import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
-import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
-import com.mapbox.maps.plugin.locationcomponent.location
+import com.mapbox.geojson.Point
+import com.mapbox.maps.MapboxExperimental
+import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -103,39 +94,46 @@ fun MapRecordScreen(
         )
     )
 
-    DisposableEffect(Unit) {
-        onDispose {
-            isFirst = true
-        }
-    }
-
     LaunchedEffect(key1 = true, block = {
         Log.d(TAG, "launchMultiplePermissionRequest")
         locationPermissionsState.launchMultiplePermissionRequest()
     })
 
-    if (locationPermissionsState.allPermissionsGranted) {
-        LaunchedEffect(LocationManager.currentInfoTracking) {
-            LocationManager.currentInfoTracking.collect {
-                if (it.speed == 0f && it.kCal == 0f && it.distance == BigDecimal(0)) return@collect
-                val newDistance =
-                    if (it.distance == BigDecimal(0)) mapUiState.infoTracking.distance else it.distance + mapUiState.infoTracking.distance
-                Log.d(TAG, "currentInfoTracking: $it")
-                val newInfoTracking = InfoTracking(
-                    speed = it.speed,
-                    kCal = it.kCal + mapUiState.infoTracking.kCal,
-                    distance = newDistance
-                )
-                viewModel.handleEvent(MapEvent.UpdateInfoTracking(newInfoTracking))
-            }
+    val mapViewportState = rememberMapViewportState {
+        // Set the initial camera position
+        setCameraOptions {
+            center(Point.fromLngLat(0.0, 0.0))
+            zoom(0.0)
+            pitch(0.0)
         }
+    }
+
+    if (locationPermissionsState.allPermissionsGranted) {
+//        LaunchedEffect(LocationManager.currentInfoTracking) {
+//            LocationManager.currentInfoTracking.collect {
+//                if (it.speed == 0f && it.kCal == 0f && it.distance == BigDecimal(0)) return@collect
+//                val newDistance =
+//                    if (it.distance == BigDecimal(0)) mapUiState.infoTracking.distance else it.distance + mapUiState.infoTracking.distance
+//                Log.d(TAG, "currentInfoTracking: $it")
+//                val newInfoTracking = InfoTracking(
+//                    speed = it.speed,
+//                    kCal = it.kCal + mapUiState.infoTracking.kCal,
+//                    distance = newDistance
+//                )
+//                viewModel.handleEvent(MapEvent.UpdateInfoTracking(newInfoTracking))
+//            }
+//        }
+
+        LaunchedEffect(key1 = null, block = {
+            viewModel.handleEvent(MapEvent.GetCurrentLocation)
+        })
 
         Box(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background)
                 .fillMaxSize()
         ) {
-            MapBoxView()
+//            MapBoxView(mapUiState.infoTracking.location, mapViewportState)
 
             IconBack {
                 onBack()
@@ -166,10 +164,10 @@ fun MapRecordScreen(
                     }
                 ) {
                     if (!mapUiState.isRecord) {
-                        LocationManager.startLocationTracking(context, 2000, 1f)
+//                        LocationManager.startLocationTracking(context, 2000, 1f)
                         viewModel.handleEvent(MapEvent.Start)
                     } else {
-                        LocationManager.stopLocationTracking()
+//                        LocationManager.stopLocationTracking()
                         viewModel.handleEvent(MapEvent.Stop)
                     }
                 }
@@ -214,40 +212,21 @@ fun MapRecordScreen(
     }
 }
 
+@OptIn(MapboxExperimental::class)
 @Composable
 fun MapBoxView() {
-    AndroidView(modifier = Modifier, factory = { context ->
-        MapboxOptions.accessToken = context.getString(R.string.mapbox_access_token)
-
-        MapView(context).apply {
-            mapboxMap.loadStyle(Style.MAPBOX_STREETS) {}
-        }
-    }) { mapView ->
-        Log.d(TAG, "CreateMap")
-        mapView.location.updateSettings {
-            enabled = true
-            pulsingEnabled = true
-        }
-
-        val onIndicatorBearingChangedListener = OnIndicatorBearingChangedListener {
-            mapView.mapboxMap
-                .setCamera(CameraOptions.Builder().bearing(it).zoom(14.0).build())
-        }
-
-        val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
-            mapView.mapboxMap
-                .setCamera(CameraOptions.Builder().center(it).zoom(14.0).build())
-            mapView.gestures.focalPoint =
-                mapView.mapboxMap.pixelForCoordinate(it)
-        }
-
-        mapView.location.addOnIndicatorPositionChangedListener(
-            onIndicatorPositionChangedListener
-        )
-        mapView.location.addOnIndicatorBearingChangedListener(
-            onIndicatorBearingChangedListener
-        )
-    }
+//    MapboxMap(
+//        modifier = Modifier.fillMaxSize(),
+//        mapViewportState = mapViewportState,
+//        mapInitOptionsFactory = { context ->
+//            MapInitOptions(
+//                context = context,
+//                styleUri = Style.MAPBOX_STREETS,
+//            )
+//        }
+//    ) {
+//        PointAnnotation(point = Point.fromLngLat(location.lng, location.lat))
+//    }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
