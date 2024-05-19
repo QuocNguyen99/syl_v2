@@ -8,6 +8,7 @@ import com.hqnguyen.syl_v2.data.entity.InfoRecordEntity
 import com.hqnguyen.syl_v2.data.entity.RecordEntity
 import com.hqnguyen.syl_v2.data.repository.InfoRecordRepositoryImpl
 import com.hqnguyen.syl_v2.data.repository.RecordRepositoryImpl
+import com.hqnguyen.syl_v2.service.LocationAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -23,7 +24,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MapRecordViewModel @Inject constructor(
     private val repositoryRecordImpl: RecordRepositoryImpl,
-    private val repositoryInfoImpl: InfoRecordRepositoryImpl
+    private val repositoryInfoImpl: InfoRecordRepositoryImpl,
+    private val locationManager: LocationAction
 ) : ViewModel() {
     companion object {
         private const val TAG = "MapRecordViewModel"
@@ -34,12 +36,24 @@ class MapRecordViewModel @Inject constructor(
 
     private var currentRecord: RecordEntity? = null
     private var jobCountTime: Job? = null
+
     fun handleEvent(event: MapEvent) {
-        Log.d(TAG, "handleEvent event $event")
         when (event) {
             is MapEvent.UpdateInfoTracking -> updateInfoTracking(event.infoTracking)
+            MapEvent.GetCurrentLocation -> getCurrentLocation()
             is MapEvent.Start -> startRecord()
             is MapEvent.Stop -> stopRecord()
+        }
+    }
+
+    private fun getCurrentLocation() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val currentLocation = locationManager.getCurrentLocation()
+                mutableState.emit(mutableState.value.copy(currentLocation = currentLocation))
+            } catch (ex: Exception) {
+                Log.d(TAG, "getCurrentLocation ex: $ex")
+            }
         }
     }
 
