@@ -44,7 +44,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
+        kotlinCompilerExtensionVersion = "1.5.14"
     }
     packaging {
         resources {
@@ -80,13 +80,13 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     annotationProcessor(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler.v252)
+    ksp(libs.androidx.room.compiler)
 
     //Hilt
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
     //Mapbox
-    implementation(libs.android.v1100rc2)
+    implementation(libs.android.mapbox)
     implementation(libs.maps.compose)
 
     //Navigation
