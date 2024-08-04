@@ -1,44 +1,44 @@
 package com.hqnguyen.syl_v2.persentation.page.map_record
 
 import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hqnguyen.syl_v2.core.BaseEvent
+import com.hqnguyen.syl_v2.core.BaseViewModel
 import com.hqnguyen.syl_v2.data.InfoTracking
 import com.hqnguyen.syl_v2.data.entity.InfoRecordEntity
 import com.hqnguyen.syl_v2.data.entity.RecordEntity
+import com.hqnguyen.syl_v2.data.location.LocationAction
+import com.hqnguyen.syl_v2.data.location.MapLocation
 import com.hqnguyen.syl_v2.data.repository.InfoRecordRepositoryImpl
 import com.hqnguyen.syl_v2.data.repository.RecordRepositoryImpl
-import com.hqnguyen.syl_v2.service.LocationAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
 
 @HiltViewModel
 class MapRecordViewModel @Inject constructor(
     private val repositoryRecordImpl: RecordRepositoryImpl,
     private val repositoryInfoImpl: InfoRecordRepositoryImpl,
     private val locationManager: LocationAction
-) : ViewModel() {
-    companion object {
-        private const val TAG = "MapRecordViewModel"
-    }
+) : BaseViewModel<MapEvent, MapState, MapEffect>() {
+    private val TAG = this.javaClass.name
 
-    private val mutableState = MutableStateFlow(MapState())
-    val state: StateFlow<MapState> = mutableState.asStateFlow()
+    override fun createInitialState(): MapState = MapState()
 
     private var currentRecord: RecordEntity? = null
+    private var jobTrackingLocation: Job? = null
     private var jobCountTime: Job? = null
 
-    fun handleEvent(event: MapEvent) {
+    override fun processEvent(event: BaseEvent) {
         when (event) {
+            MapEvent.StartTrackingLocation -> startTrackingLocation()
             is MapEvent.UpdateInfoTracking -> updateInfoTracking(event.infoTracking)
             MapEvent.GetCurrentLocation -> getCurrentLocation()
             is MapEvent.Start -> startRecord()
@@ -46,11 +46,32 @@ class MapRecordViewModel @Inject constructor(
         }
     }
 
+    private fun startTrackingLocation() {
+        jobTrackingLocation?.cancel()
+        jobTrackingLocation = viewModelScope.launch(Dispatchers.IO) {
+            locationManager
+                .getLocationUpdate(1000L)
+                .catch { e -> Log.e(TAG, "startTrackingLocation: e.message ${e.message}") }
+                .map { location ->
+                    val lat = location.latitude.toString().takeLast(3)
+                    val long = location.longitude.toString().takeLast(3)
+                    MapLocation(long.toDouble(), lat.toDouble())
+                }
+                .collectLatest {
+                    updateUiState { copy(currentLocation = it) }
+                }
+        }
+    }
+
     private fun getCurrentLocation() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val currentLocation = locationManager.getCurrentLocation()
-                mutableState.emit(mutableState.value.copy(currentLocation = currentLocation))
+                val lat = currentLocation.latitude.toString().takeLast(3)
+                val long = currentLocation.longitude.toString().takeLast(3)
+                updateUiState {
+                    copy(currentLocation = MapLocation(long.toDouble(), lat.toDouble()))
+                }
             } catch (ex: Exception) {
                 Log.d(TAG, "getCurrentLocation ex: $ex")
             }
@@ -60,13 +81,9 @@ class MapRecordViewModel @Inject constructor(
     private fun startCountTime() {
         jobCountTime = viewModelScope.launch(Dispatchers.IO) {
             while (true) {
-                Log.d(TAG, "startCountTime: MapUiState ${mutableState.value.countTime}")
-                if (mutableState.value.isRecord && isActive) {
-                    mutableState.emit(
-                        mutableState.value.copy(
-                            countTime = mutableState.value.countTime + 1,
-                        )
-                    )
+                Log.d(TAG, "startCountTime: MapUiState ${uiState.value.countTime}")
+                if (uiState.value.isRecord && isActive) {
+                    updateUiState { copy(countTime = uiState.value.countTime + 1) }
                     delay(1000)
                 }
             }
@@ -76,23 +93,15 @@ class MapRecordViewModel @Inject constructor(
     private fun stopCountTime() {
         jobCountTime?.cancel()
         viewModelScope.launch(Dispatchers.IO) {
-            mutableState.emit(
-                mutableState.value.copy(
-                    countTime = 0,
-                )
-            )
+            updateUiState { copy(countTime = 0) }
         }
     }
 
     private fun startRecord() {
+        Log.d(TAG, "startRecord")
         viewModelScope.launch {
             val timeStart = System.currentTimeMillis()
-            mutableState.emit(
-                mutableState.value.copy(
-                    timeStart = timeStart,
-                    isRecord = true
-                )
-            )
+            updateUiState { copy(timeStart = timeStart, isRecord = true) }
             startCountTime()
             saveRecordLocal(timeStart)
         }
@@ -100,22 +109,22 @@ class MapRecordViewModel @Inject constructor(
 
     private fun stopRecord() {
         Log.d(TAG, "stopRecord")
-        val countTime = mutableState.value.countTime
+        val countTime = uiState.value.countTime
         stopCountTime()
         viewModelScope.launch {
             updateRecordLocal(countTime)
-            mutableState.emit(MapState())
+            updateUiState { MapState() }
         }
     }
 
     private fun updateInfoTracking(infoTracking: InfoTracking) {
         viewModelScope.launch {
             try {
-                mutableState.emit(
-                    mutableState.value.copy(
+                updateUiState {
+                    copy(
                         infoTracking = infoTracking
                     )
-                )
+                }
                 saveInfoRecordLocal(infoTracking)
             } catch (ex: Exception) {
                 Log.e(TAG, "updateInfoTracking: ${ex.message}")

@@ -84,7 +84,7 @@ fun SYLApp() {
     systemUiController.isNavigationBarVisible = false
 
     val sharedViewModel: MapRecordViewModel = hiltViewModel()
-    val uiStateShared by sharedViewModel.state.collectAsState()
+    val uiStateShared by sharedViewModel.uiState.collectAsState()
     Scaffold(floatingActionButton = {
         if (shouldShowFAB)
             FloatingButtonCustom {

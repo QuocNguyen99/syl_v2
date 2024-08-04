@@ -1,4 +1,4 @@
-package com.hqnguyen.syl_v2.service
+package com.hqnguyen.syl_v2.data.location
 
 import android.location.Location
 import kotlinx.coroutines.flow.Flow

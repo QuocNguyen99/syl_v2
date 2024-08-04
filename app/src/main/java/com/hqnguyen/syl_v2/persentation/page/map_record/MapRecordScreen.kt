@@ -62,10 +62,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.hqnguyen.syl_v2.R
+import com.hqnguyen.syl_v2.data.location.MapLocation
+import com.hqnguyen.syl_v2.persentation.page.map_record.component.InfoRunning
+import com.hqnguyen.syl_v2.persentation.page.map_record.component.ItemInfoRunning
 import com.hqnguyen.syl_v2.ui.theme.SYLTheme
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapboxExperimental
+import com.mapbox.maps.Style
+import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
+import com.mapbox.maps.extension.compose.style.MapStyle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -83,7 +90,7 @@ fun MapRecordScreen(
     viewModel: MapRecordViewModel = hiltViewModel(),
     onBack: () -> Unit = {}
 ) {
-    val mapUiState by viewModel.state.collectAsStateWithLifecycle()
+    val mapUiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var cardVisible by remember { mutableStateOf(true) }
 
@@ -99,33 +106,9 @@ fun MapRecordScreen(
         locationPermissionsState.launchMultiplePermissionRequest()
     })
 
-    val mapViewportState = rememberMapViewportState {
-        // Set the initial camera position
-        setCameraOptions {
-            center(Point.fromLngLat(0.0, 0.0))
-            zoom(0.0)
-            pitch(0.0)
-        }
-    }
-
     if (locationPermissionsState.allPermissionsGranted) {
-//        LaunchedEffect(LocationManager.currentInfoTracking) {
-//            LocationManager.currentInfoTracking.collect {
-//                if (it.speed == 0f && it.kCal == 0f && it.distance == BigDecimal(0)) return@collect
-//                val newDistance =
-//                    if (it.distance == BigDecimal(0)) mapUiState.infoTracking.distance else it.distance + mapUiState.infoTracking.distance
-//                Log.d(TAG, "currentInfoTracking: $it")
-//                val newInfoTracking = InfoTracking(
-//                    speed = it.speed,
-//                    kCal = it.kCal + mapUiState.infoTracking.kCal,
-//                    distance = newDistance
-//                )
-//                viewModel.handleEvent(MapEvent.UpdateInfoTracking(newInfoTracking))
-//            }
-//        }
-
         LaunchedEffect(key1 = null, block = {
-            viewModel.handleEvent(MapEvent.GetCurrentLocation)
+            viewModel.processEvent(MapEvent.StartTrackingLocation)
         })
 
         Box(
@@ -133,7 +116,7 @@ fun MapRecordScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .fillMaxSize()
         ) {
-//            MapBoxView(mapUiState.infoTracking.location, mapViewportState)
+            MapBoxView(mapLocation = mapUiState.currentLocation)
 
             IconBack {
                 onBack()
@@ -164,11 +147,9 @@ fun MapRecordScreen(
                     }
                 ) {
                     if (!mapUiState.isRecord) {
-//                        LocationManager.startLocationTracking(context, 2000, 1f)
-                        viewModel.handleEvent(MapEvent.Start)
+                        viewModel.processEvent(MapEvent.Start)
                     } else {
-//                        LocationManager.stopLocationTracking()
-                        viewModel.handleEvent(MapEvent.Stop)
+                        viewModel.processEvent(MapEvent.Stop)
                     }
                 }
             }
@@ -214,19 +195,19 @@ fun MapRecordScreen(
 
 @OptIn(MapboxExperimental::class)
 @Composable
-fun MapBoxView() {
-//    MapboxMap(
-//        modifier = Modifier.fillMaxSize(),
-//        mapViewportState = mapViewportState,
-//        mapInitOptionsFactory = { context ->
-//            MapInitOptions(
-//                context = context,
-//                styleUri = Style.MAPBOX_STREETS,
-//            )
-//        }
-//    ) {
-//        PointAnnotation(point = Point.fromLngLat(location.lng, location.lat))
-//    }
+fun MapBoxView(mapLocation: MapLocation?) {
+    MapboxMap(
+        modifier = Modifier.fillMaxSize(),
+        mapViewportState = rememberMapViewportState {
+            setCameraOptions {
+                center(Point.fromLngLat(mapLocation?.longitude ?: 0.0, mapLocation?.latitude ?: 0.0))
+                zoom(14.0)
+            }
+        },
+        style = { MapStyle(style = Style.MAPBOX_STREETS) }
+    ) {
+        PointAnnotation(point = Point.fromLngLat(mapLocation?.longitude ?: 0.0, mapLocation?.latitude ?: 0.0))
+    }
 }
 
 @OptIn(ExperimentalMaterialApi::class)

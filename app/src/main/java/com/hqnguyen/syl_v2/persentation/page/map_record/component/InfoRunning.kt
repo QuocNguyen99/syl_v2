@@ -1,4 +1,4 @@
-package com.hqnguyen.syl_v2.persentation.page.map_record
+package com.hqnguyen.syl_v2.persentation.page.map_record.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

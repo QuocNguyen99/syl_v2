@@ -3,8 +3,8 @@ package com.hqnguyen.syl_v2.di
 import android.content.Context
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.hqnguyen.syl_v2.service.LocationAction
-import com.hqnguyen.syl_v2.service.LocationManager
+import com.hqnguyen.syl_v2.data.location.LocationAction
+import com.hqnguyen.syl_v2.data.location.LocationManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
