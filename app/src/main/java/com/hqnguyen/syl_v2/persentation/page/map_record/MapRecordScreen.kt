@@ -69,10 +69,13 @@ import com.hqnguyen.syl_v2.ui.theme.SYLTheme
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapboxExperimental
 import com.mapbox.maps.Style
+import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.MapboxMap
+import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
 import com.mapbox.maps.extension.compose.style.MapStyle
+import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -84,7 +87,7 @@ const val TAG = "MapRecordScreen"
 private var isFirst = true
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class, MapboxExperimental::class)
 @Composable
 fun MapRecordScreen(
     viewModel: MapRecordViewModel = hiltViewModel(),
@@ -93,6 +96,15 @@ fun MapRecordScreen(
     val mapUiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var cardVisible by remember { mutableStateOf(true) }
+
+    val mapViewportState = rememberMapViewportState {
+        // Set the initial camera position
+        setCameraOptions {
+            center(Point.fromLngLat(0.0, 0.0))
+            zoom(0.0)
+            pitch(0.0)
+        }
+    }
 
     val locationPermissionsState = rememberMultiplePermissionsState(
         listOf(
@@ -111,12 +123,26 @@ fun MapRecordScreen(
             viewModel.processEvent(MapEvent.StartTrackingLocation)
         })
 
+        LaunchedEffect(key1 = mapUiState.currentLocation, block = {
+            mapUiState.currentLocation?.let { location ->
+                Log.e(TAG, "onLocationResult: LaunchedEffect location.longitude: ${location.longitude} - ${location.latitude}")
+                mapViewportState.flyTo(
+                    cameraOptions = cameraOptions {
+                        center(Point.fromLngLat(location.longitude, location.latitude))
+                        zoom(14.0)
+                        pitch(45.0)
+                    },
+                    MapAnimationOptions.mapAnimationOptions { duration(100) }
+                )
+            }
+        })
+
         Box(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background)
                 .fillMaxSize()
         ) {
-            MapBoxView(mapLocation = mapUiState.currentLocation)
+            MapBoxView(mapViewportState = mapViewportState, mapLocation = mapUiState.currentLocation)
 
             IconBack {
                 onBack()
@@ -195,15 +221,10 @@ fun MapRecordScreen(
 
 @OptIn(MapboxExperimental::class)
 @Composable
-fun MapBoxView(mapLocation: MapLocation?) {
+fun MapBoxView(mapViewportState: MapViewportState, mapLocation: MapLocation?) {
     MapboxMap(
         modifier = Modifier.fillMaxSize(),
-        mapViewportState = rememberMapViewportState {
-            setCameraOptions {
-                center(Point.fromLngLat(mapLocation?.longitude ?: 0.0, mapLocation?.latitude ?: 0.0))
-                zoom(14.0)
-            }
-        },
+        mapViewportState = mapViewportState,
         style = { MapStyle(style = Style.MAPBOX_STREETS) }
     ) {
         PointAnnotation(point = Point.fromLngLat(mapLocation?.longitude ?: 0.0, mapLocation?.latitude ?: 0.0))

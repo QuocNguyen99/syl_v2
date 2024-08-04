@@ -53,9 +53,10 @@ class MapRecordViewModel @Inject constructor(
                 .getLocationUpdate(1000L)
                 .catch { e -> Log.e(TAG, "startTrackingLocation: e.message ${e.message}") }
                 .map { location ->
-                    val lat = location.latitude.toString().takeLast(3)
-                    val long = location.longitude.toString().takeLast(3)
-                    MapLocation(long.toDouble(), lat.toDouble())
+                    val lat = location.latitude
+                    val long = location.longitude
+                    Log.i(TAG, "startTrackingLocation: long $long - lat $lat")
+                    MapLocation(long, lat)
                 }
                 .collectLatest {
                     updateUiState { copy(currentLocation = it) }

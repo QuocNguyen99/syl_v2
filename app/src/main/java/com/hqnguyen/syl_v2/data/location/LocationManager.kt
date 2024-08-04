@@ -48,11 +48,12 @@ class LocationManager(private val context: Context, private val client: FusedLoc
                 val locationCallback = object : LocationCallback() {
                     override fun onLocationResult(p0: LocationResult) {
                         super.onLocationResult(p0)
+                        Log.d(TAG, "onLocationResult: location: ${p0.locations.size}")
+                        Log.d(TAG, "onLocationResult: location: ${p0.locations.lastOrNull() != null}")
+                        Log.d(TAG, "onLocationResult: location: ${p0.locations.lastOrNull()?.longitude} - ${p0.locations.lastOrNull()?.latitude}")
                         p0.locations.lastOrNull()?.let { location: Location ->
-                            {
-                                Log.d(TAG, "onLocationResult: location: ${location.longitude} - ${location.latitude}")
-                                launch { send(location) }
-                            }
+                            Log.d(TAG, "onLocationResult: location: ${location.longitude} - ${location.latitude}")
+                            launch { send(location) }
                         }
                     }
                 }
@@ -63,7 +64,7 @@ class LocationManager(private val context: Context, private val client: FusedLoc
                     Log.e(TAG, "onLocationResult: remove")
                     client.removeLocationUpdates(locationCallback as LocationCallback)
                 }
-            }catch (ex:Exception){
+            } catch (ex: Exception) {
                 Log.e(TAG, "onLocationResult: exception: ${ex.message}")
             }
         }
